@@ -1,0 +1,48 @@
+.copy-button {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.copy-button:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.05);
+}
+
+.copy-button.copied {
+    background: #48c774;
+}
+
+.copy-button i {
+    font-size: 0.875rem;
+}
+
+pre {
+    padding-right: 3rem !important;
+}
+
+.copy-feedback {
+    position: absolute;
+    top: 0.75rem;
+    right: 4rem;
+    background: #48c774;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.copy-feedback.show {
+    opacity: 1;
+}
