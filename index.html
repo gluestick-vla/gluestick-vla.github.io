@@ -4,37 +4,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="description"
-    content="We propose UFM, a simple, transformer based feed-forward neural network that directly regresses correspondence and covisibility between a pair of images. The model represents correspondence as a pixel displacement image (flow) and is directly trained to regress it. UFM's simplicity, robustness, and efficiency make it a strong baseline for optical flow & image matching tasks.">
-  <meta name="keywords" content="UFM,Image Matching, Correspondence, End-to-end geometric network">
+    content="Vision-Language-Action (VLA) models are powerful robotic controllers, yet remain memory-intensive to deploy. We investigate applying pruning algorithms to VLAs and introduce GLUE, a post-pruning recovery method that preserves memory savings while restoring performance and safety.">
+  <meta name="keywords" content="GLUE,VLA,Pruning,Robotics,Safety,Memory Efficiency">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="image" content="https://uniflowmatch.github.io/resources/teaser.jpg">
-  <title>UFM: A Simple Path towards Unified Dense Correspondence with Flow</title>
+  <meta name="image" content="https://safety-glue.github.io/resources/teaser.jpg">
+  <title>Don't Run with Scissors: Pruning Collapses VLA Model Performance and Safety but it can be Recovered</title>
 
 
-  <meta property="og:title" content="UFM: A Simple Path towards Unified Dense Correspondence with Flow." />
+  <meta property="og:title"
+    content="Don't Run with Scissors: Pruning Collapses VLA Model Performance and Safety but it can be Recovered" />
   <meta property="og:description"
-    content="We propose UFM, a simple, transformer based feed-forward neural network that directly regresses correspondence and covisibility between a pair of images. The model represents correspondence as a pixel displacement image (flow) and is directly trained to regress it. UFM's simplicity, robustness, and efficiency make it a strong baseline for optical flow & image matching tasks." />
+    content="Vision-Language-Action (VLA) models are powerful robotic controllers, yet remain memory-intensive to deploy. We investigate applying pruning algorithms to VLAs and introduce GLUE, a post-pruning recovery method that preserves memory savings while restoring performance and safety." />
   <!-- Twitter automatically scrapes this. Go to https://cards-dev.twitter.com/validator?
       if you update and want to force Twitter to re-scrape. -->
   <meta property="twitter:card" content="summary" />
-  <meta property="twitter:title" content="UFM: A Simple Path towards Unified Dense Correspondence with Flow." />
+  <meta property="twitter:title"
+    content="Don't Run with Scissors: Pruning Collapses VLA Model Performance and Safety but it can be Recovered" />
   <meta property="twitter:description"
-    content="We propose UFM, a simple, transformer based feed-forward neural network that directly regresses correspondence and covisibility between a pair of images. The model represent correspondence as pixel displacement image and is directly trained to regress it. UFM's simplicity, robustness, and efficiency make it a strong baseline for image matching tasks." />
+    content="Vision-Language-Action (VLA) models are powerful robotic controllers, yet remain memory-intensive to deploy. We investigate applying pruning algorithms to VLAs and introduce GLUE, a post-pruning recovery method that preserves memory savings while restoring performance and safety." />
   <!-- <meta property="twitter:image"         content="https://3dmagicpony.github.io/resources/overview.jpg" /> -->
 
   <!-- MathJax library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
 
 
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-TSQGH8Q0WV"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-
-    gtag('config', 'G-LSEC5ZKD56');
-  </script>
+  <!-- Google Analytics removed for template -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
 
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
@@ -61,62 +55,9 @@
       <div class="container is-max-desktop">
         <div class="columns is-centered">
           <div class="column has-text-centered">
-            <h1 class="title is-4 publication-title" style="font-size: 2rem;">UFM: A Simple Path towards Unified Dense<br>Correspondence with Flow</h1>
-            <div class="is-size-5 publication-authors">
-              <span class="author-block">
-                <a href="https://infinity1096.github.io/">Yuchen Zhang</a>
-              </span>
-              &nbsp;&nbsp;&nbsp;
-              <span class="author-block">
-                <a href="https://nik-v9.github.io/">Nikhil Keetha</a>
-              </span>
-              &nbsp;&nbsp;&nbsp;
-              <span class="author-block"> 
-                <a href="https://www.linkedin.com/in/chenwei-lyu/">Chenwei Lyu</a>
-              </span>
-              &nbsp;&nbsp;&nbsp;
-              <span class="author-block">
-                <a href="https://www.linkedin.com/in/bhuvanjhamb/">Bhuvan Jhamb</a>
-              </span>
-              &nbsp;&nbsp;&nbsp;
-              <span class="author-block">
-                <a href="https://www.yutianchen.blog/">Yutian Chen</a>
-              </span>
-              <br>
-              &nbsp;&nbsp;&nbsp;
-              <span class="author-block">
-                <a href="https://haleqiu.github.io">Yuheng Qiu</a>
-              </span>
-              &nbsp;&nbsp;&nbsp;
-              <span class="author-block">
-                <a href="https://jaykarhade.github.io/">Jay Karhade</a>
-              </span>
-              &nbsp;&nbsp;&nbsp;
-              <span class="author-block">
-                <a href="https://www.linkedin.com/in/shreyasjha/">Shreyas Jha</a>
-              </span>
-              &nbsp;&nbsp;&nbsp;
-              <span class="author-block">
-                <a href="http://www.huyaoyu.com/">Yaoyu Hu</a>
-              </span>
-              <br>
-              &nbsp;&nbsp;&nbsp;
-              <span class="author-block">
-                <a href="https://www.cs.cmu.edu/~deva/">Deva Ramanan</a>
-              </span>
-              &nbsp;&nbsp;&nbsp;
-              <span class="author-block">
-                <a href="https://theairlab.org/team/sebastian/">Sebastian Scherer</a>
-              </span>
-              &nbsp;&nbsp;&nbsp;
-              <span class="author-block">
-                <a href="http://www.wangwenshan.com/">Wenshan Wang</a>
-              </span>
-            </div>
-
-            <div class="is-size-5 publication-authors" style="margin-bottom: 10px;">
-              <span class="author-block" style="margin-right: 10px;">Carnegie Mellon University</span>
-            </div>
+            <h1 class="title is-4 publication-title" style="font-size: 2rem;">Don't Run with Scissors: Pruning Collapses
+              VLA Model<br>Performance and Safety but it can be Recovered</h1>
+            <!-- Authors will be added later -->
 
             <!-- <h1 style="font-size:24px;font-weight:bold">CVPR 2025 Best Paper Award Candidate</h1> -->
 
@@ -127,46 +68,29 @@
 
                 <!-- PDF Link. -->
                 <span class="link-block">
-                  <a href="assets/UFM.pdf" class="external-link button is-normal is-rounded is-dark">
+                  <a href="#" class="external-link button is-normal is-rounded is-dark" onclick="return false;">
                     <span class="icon">
                       <i class="fas fa-file-pdf"></i>
                     </span>
-                    <span>Paper</span>
+                    <span>Paper (Coming Soon)</span>
                   </a>
                 </span>
                 <!-- ArXiv Link. -->
                 <span class="link-block">
-                  <a href="https://arxiv.org/abs/2506.09278" class="external-link button is-normal is-rounded is-dark">
+                  <a href="#" class="external-link button is-normal is-rounded is-dark" onclick="return false;">
                     <span class="icon">
                       <i class="ai ai-arxiv"></i>
                     </span>
-                    <span>Arxiv</span>
+                    <span>ArXiv (Coming Soon)</span>
                   </a>
                 </span>
                 <!-- Code Link. -->
                 <span class="link-block">
-                  <a href="https://github.com/UniFlowMatch/UFM"
-                    class="external-link button is-normal is-rounded is-dark">
+                  <a href="#" class="external-link button is-normal is-rounded is-dark" onclick="return false;">
                     <span class="icon">
                       <i class="fab fa-github"></i>
                     </span>
-                    <span>Code</span>
-                  </a>
-                </span>
-                <!-- Model Link -->
-                <span class="link-block">
-                  <a href="https://huggingface.co/infinity1096/UFM-Base" class="external-link button is-normal is-rounded is-dark">
-                    <span class="icon">
-                      <i class="fas fa-puzzle-piece"></i>
-                    </span>
-                    <span>Model</span>
-                  </a>
-                </span>
-                <!-- Demo Link -->
-                <span class="link-block">
-                  <a href="https://huggingface.co/spaces/infinity1096/UFM"
-                    class="external-link button is-normal is-rounded is-dark">
-                    <span>🤗 Demo</span>
+                    <span>Code (Coming Soon)</span>
                   </a>
                 </span>
               </div>
@@ -182,14 +106,18 @@
   <style>
     .video-border {
       display: inline-block;
-      padding: 2px; /* adjust thickness of your 'border' */
+      padding: 2px;
+      /* adjust thickness of your 'border' */
       border-radius: 4px;
-      background: linear-gradient(45deg, #ff9a9e, #fad0c4); /* try different gradient colors */
+      background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+      /* try different gradient colors */
     }
+
     .video-border video {
       display: block;
       border: none;
-      border-radius: 4px; /* match the wrapper for a consistent look */
+      border-radius: 4px;
+      /* match the wrapper for a consistent look */
     }
   </style>
 
@@ -198,32 +126,39 @@
       max-width: 60%;
       margin: 0 auto;
       display: block;
-      border: none; /* remove the solid border */
+      border: none;
+      /* remove the solid border */
       border-radius: 4px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     }
-    
+
     #architecture-img {
       width: 90%;
       margin: 0 auto;
       display: block;
       border: none;
-      border-radius: 0; /* removed border radius */
-      box-shadow: none; /* removed box shadow */
+      border-radius: 0;
+      /* removed border radius */
+      box-shadow: none;
+      /* removed box shadow */
     }
-    
+
     /* Enhanced style to further reduce space between buttons and teaser video */
     .hero.teaser {
       padding-top: 0;
-      margin-top: -3rem; /* Added negative margin to pull the teaser section up */
+      margin-top: -3rem;
+      /* Added negative margin to pull the teaser section up */
     }
+
     .hero.teaser .hero-body {
-      padding-top: 0; /* Reduced from 1rem to 0 */
+      padding-top: 0;
+      /* Reduced from 1rem to 0 */
     }
-    
+
     /* Reduce space between hero section (links) and TLDR section */
     .hero {
-      margin-bottom: -3rem; /* Pull the next section up */
+      margin-bottom: -3rem;
+      /* Pull the next section up */
     }
   </style>
 
@@ -235,29 +170,43 @@
 
           <div class="content has-text-justified">
             <p>
-              <b>TLDR:</b> UFM is a simple, end-to-end trained transformer model that directly regresses pixel displacement images (flow) & covisibility which can be applied to both optical flow and wide-baseline matching tasks with high accuracy and efficiency.
+              <b>TLDR:</b> We investigate applying pruning algorithms to Vision-Language-Action (VLA) models and find
+              that pruning achieves memory savings but degrades performance and increases safety violations. We
+              introduce GLUE, a post-pruning recovery method that preserves memory savings while restoring performance
+              and safety through weight-space interpolation and SVD-based correction.
             </p>
           </div>
 
           <div class="content has-text-centered">
             <!-- Teaser Collage -->
-            <img id="teaser-collage" src="./resources/teaser_collage.webp" alt="Teaser Collage" style="width: 100%; margin-bottom: 0.5rem;">
+            <img id="teaser-collage" src="./resources/teaser_collage.webp" alt="Teaser Collage"
+              style="width: 100%; margin-bottom: 0.5rem;">
             <p style="margin-bottom: 1.5rem;">
-              Interpolations of UFM's dense 2D correspondence show strong sense of 3D motion!
+              Our method preserves memory efficiency while maintaining performance and safety in robotic tasks.
             </p>
 
             <!-- Original Teaser Image -->
             <!-- <img id="teaser" src="https://placehold.co/600x400" alt="Teaser image" style="width: 100%;"> -->
-            <img id="qualitative-comp" src="./resources/teaser.jpg" alt="Qualitative Comparison" style="margin-bottom: 0.5rem;">
+            <img id="qualitative-comp" src="./resources/teaser.jpg" alt="Qualitative Comparison"
+              style="margin-bottom: 0.5rem;">
             <p style="margin-bottom: 1rem;">
-              UFM achieves high accuracy and efficiency for both in-the-wild optical flow and wide-baseline matching tasks.
+              GLUE achieves competitive memory efficiency while substantially recovering success rates and reducing
+              safety violations.
             </p>
           </div>
 
           <h2 class="title is-4" style="font-weight: 700;">Abstract</h2>
           <div class="content has-text-justified">
             <p>
-              Dense image correspondence is central to many applications, such as visual odometry, 3D reconstruction, object association, and re-identification. Historically, dense correspondence has been tackled separately for wide-baseline scenarios and optical flow estimation, despite the common goal of matching content between two images. In this paper, we develop a Unified Flow & Matching model (<b>UFM</b>), which is trained on unified data for pixels that are co-visible in both source and target images. UFM uses a simple, generic transformer architecture that <b> directly regresses the (u,v) flow </b>. It is easier to train and more accurate for large flows compared to the typical coarse-to-find cost volumes in prior work. UFM is 28% more accurate than state-of-the-art flow methods (Unimatch), while also having 62% less error and 6.7x faster than dense wide-baseline matchers (RoMa). UFM is the first to demonstrate that unified training can outperform specialized approaches across both domains. This enables fast, general-purpose correspondence and opens new directions for multi-modal, long-range, and real-time correspondence tasks. 
+              Vision-Language-Action (VLA) models are powerful robotic controllers, yet remain memory-intensive to
+              deploy. Motivated by pruning successes in large language models (LLMs), we investigate applying pruning
+              algorithms to VLAs. We find that pruning achieves the expected memory savings but sharply degrades
+              performance and increases safety violations. We introduce GLUE, a post-pruning recovery method that
+              preserves the memory savings while restoring performance and safety. GLUE performs a simple weight-space
+              interpolation between dense and pruned models and applies an SVD-based low-rank correction, restoring
+              critical representational capacity without retraining. Across diverse VLA architectures and tasks in
+              manipulation and navigation, GLUE achieves competitive memory efficiency while substantially recovering
+              success rates and reducing safety violations.
             </p>
           </div>
           <br>
@@ -265,7 +214,12 @@
           <h2 class="title is-4" style="font-weight: 700;">Method</h2>
           <div class="content has-text-justified">
             <p>
-              UFM employs a simple end-to-end transformer architecture. It first encode both images with DINOv2, and then process the concatenated features with self-attention layers. The model then regresses the (u,v) flow image and covisibility prediction through DPT heads. We trained the model on a <b>combined dataset from 12 optical flow and wide-baseline matching datasets</b>, showing mutual improvement on both tasks.
+              GLUE (Gradient-based Low-rank Update Enhancement) is a post-pruning recovery method designed to restore
+              the performance and safety of pruned VLA models. The method performs weight-space interpolation between
+              the original dense model and the pruned model, followed by an SVD-based low-rank correction that restores
+              critical representational capacity. This approach preserves the memory savings achieved through pruning
+              while substantially recovering success rates and reducing safety violations across diverse VLA
+              architectures and robotic tasks.
             </p>
           </div>
           <div class="content has-text-centered">
@@ -274,12 +228,12 @@
           </div>
 
           <br>
-          
+
           <!-- Updated Video Gallery -->
           <h2 class="title is-4" style="font-weight: 700;">Video Gallery</h2>
           <div class="content has-text-justified">
             <p>
-              We visualize UFM's predictions through warping the target image back to the source image with the predicted flow image.
+              Demonstration videos showing the performance of our method on various robotic tasks.
             </p>
           </div>
           <div class="gallery-container">
@@ -288,15 +242,16 @@
                 <source src="./resources/bike.mp4" type="video/mp4">
               </video>
               <div class="video-info">
-                <h2 class="video-title" id="video-title">Bike Motion Analysis</h2>
-                <p class="video-description" id="video-description">UFM demonstrates exceptional performance in tracking complex motion patterns of bicycles in urban environments.</p>
+                <h2 class="video-title" id="video-title">Robotic Task Demonstration</h2>
+                <p class="video-description" id="video-description">Our method demonstrates improved performance and
+                  safety in robotic manipulation tasks.</p>
               </div>
             </div>
-            
+
             <div class="thumbnails-container" id="thumbnails-container">
               <!-- Thumbnails will be added by JavaScript -->
             </div>
-            
+
             <div class="gallery-controls">
               <!-- <button class="gallery-btn" id="prev-btn">
                 <i class="fas fa-arrow-left"></i> Previous
@@ -306,21 +261,23 @@
               </button> -->
             </div>
           </div>
-          
+
           <style>
-            .thumbnail-container img, .thumbnail-container video {
+            .thumbnail-container img,
+            .thumbnail-container video {
               transition: all 0.3s ease;
               border: 3px solid transparent;
               cursor: pointer;
             }
+
             .thumbnail-selected {
               transform: scale(1.2);
-              border: 6px solid #79b4f2 !important; 
+              border: 6px solid #79b4f2 !important;
               box-shadow: 0 0 10px rgba(121, 180, 242, 0.5);
               z-index: 10;
               position: relative;
             }
-            
+
             /* New styles for responsive horizontal gallery */
             .thumbnail-container {
               display: flex;
@@ -328,41 +285,44 @@
               overflow-x: auto;
               gap: 10px;
               padding: 10px 0;
-              -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+              -webkit-overflow-scrolling: touch;
+              /* Smooth scrolling on iOS */
               scrollbar-width: thin;
               align-items: center;
             }
-            
-            .thumbnail-container img, 
+
+            .thumbnail-container img,
             .thumbnail-container video {
               flex: 0 0 auto;
               width: auto;
-              height: 120px; /* Consistent height */
+              height: 120px;
+              /* Consistent height */
               object-fit: cover;
               max-width: none;
             }
-            
+
             /* Custom scrollbar styling */
             .thumbnail-container::-webkit-scrollbar {
               height: 6px;
             }
-            
+
             .thumbnail-container::-webkit-scrollbar-track {
               background: #f1f1f1;
               border-radius: 10px;
             }
-            
+
             .thumbnail-container::-webkit-scrollbar-thumb {
               background: #888;
               border-radius: 10px;
             }
-            
+
             .thumbnail-container::-webkit-scrollbar-thumb:hover {
               background: #555;
             }
-            
+
             /* Adjust for smaller screens */
             @media (max-width: 768px) {
+
               .thumbnail-container img,
               .thumbnail-container video {
                 height: 100px;
@@ -372,9 +332,9 @@
           <script>
             // The problem is here - you're trying to select an element that doesn't exist
             // document.querySelector('#thumbnail-qualitative img[src="resources/qualitative/college.png"]').classList.add('thumbnail-selected');
-            
+
             // Instead, select the first element that actually exists in your thumbnail container
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
               // Select the first element in the thumbnail container (video or image)
               const firstThumbnail = document.querySelector('#thumbnail-qualitative video, #thumbnail-qualitative img');
               if (firstThumbnail) {
@@ -384,7 +344,7 @@
                   firstThumbnail.play();
                 }
               }
-              
+
               document.querySelectorAll('#thumbnail-qualitative img, #thumbnail-qualitative video').forEach(el => {
                 // Rest of your click handler code remains the same
                 el.addEventListener('click', () => {
@@ -397,23 +357,23 @@
 
                   // Remove selection class from all elements
                   document.querySelectorAll('#thumbnail-qualitative img, #thumbnail-qualitative video').forEach(element => {
-                      element.classList.remove('thumbnail-selected');
+                    element.classList.remove('thumbnail-selected');
                   });
-                  
+
                   // Add selection class to clicked element
                   el.classList.add('thumbnail-selected');
-                  
+
                   // Play video if it's a video element
                   if (el.tagName.toLowerCase() === 'video') {
-                      el.play();
+                    el.play();
                   }
-                  
+
                   // Pause all other videos
                   document.querySelectorAll('#thumbnail-qualitative video').forEach(video => {
-                      if (video !== el) {
-                          video.pause();
-                          video.currentTime = 0;
-                      }
+                    if (video !== el) {
+                      video.pause();
+                      video.currentTime = 0;
+                    }
                   });
                 });
               });
@@ -422,10 +382,11 @@
 
           <br>
 
-          <h2 class="title is-4" style="font-weight: 700;">Qualitative Comparison</h2>
+          <h2 class="title is-4" style="font-weight: 700;">Results</h2>
           <div class="content has-text-justified" style="align-self: flex-start;">
             <p>
-              UFM holds significant advantage and generalizes to unseen environment, geometric perspective, and camera models. 
+              Our method achieves competitive memory efficiency while substantially recovering success rates and
+              reducing safety violations across diverse VLA architectures and tasks.
             </p>
           </div>
 
@@ -433,80 +394,75 @@
             <!-- <img id="teaser" src="https://placehold.co/600x400" alt="Teaser image" style="width: 100%;"> -->
             <img id="qualitative-comp" src="./resources/qualitative_comp.jpg" alt="Qualitative Comparison">
           </div>
-          
+
         </div>
       </div>
     </div>
   </section>
-  
+
   <section class="section" id="BibTeX">
-        <div class="container is-max-desktop content">
-            <h2 class="title is-4" style="font-weight: 700;">BibTeX</h2>
-            <div class="bibtex-container">
-                <button class="copy-button" onclick="copyBibTeX()" title="Copy BibTeX">
-                    <i class="fas fa-copy"></i>
-                </button>
-                <div class="copy-feedback" id="copyFeedback">Copied!</div>
-                <pre><code id="bibtexCode">@inproceedings{zhang2025ufm,
- title={UFM: A Simple Path towards Unified Dense Correspondence with Flow},
- author={Zhang, Yuchen and Keetha, Nikhil and Lyu, Chenwei and Jhamb, Bhuvan and Chen, Yutian and Qiu, Yuheng and Karhade, Jay and Jha, Shreyas and Hu, Yaoyu and Ramanan, Deva and Scherer, Sebastian and Wang, Wenshan},
- booktitle={arXiV},
- year={2025}
-}</code></pre>
-            </div>
-        </div>
-    </section>
-
-    <script>
-        async function copyBibTeX() {
-            const bibtexText = document.getElementById('bibtexCode').textContent;
-            const copyButton = document.querySelector('.copy-button');
-            const feedback = document.getElementById('copyFeedback');
-            
-            try {
-                await navigator.clipboard.writeText(bibtexText);
-                
-                // Show success feedback
-                copyButton.classList.add('copied');
-                copyButton.innerHTML = '<i class="fas fa-check"></i>';
-                feedback.classList.add('show');
-                
-                // Reset after 2 seconds
-                setTimeout(() => {
-                    copyButton.classList.remove('copied');
-                    copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-                    feedback.classList.remove('show');
-                }, 2000);
-                
-            } catch (err) {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = bibtexText;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                
-                // Show success feedback
-                copyButton.classList.add('copied');
-                copyButton.innerHTML = '<i class="fas fa-check"></i>';
-                feedback.classList.add('show');
-                
-                setTimeout(() => {
-                    copyButton.classList.remove('copied');
-                    copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-                    feedback.classList.remove('show');
-                }, 2000);
-            }
-        }
-    </script>
-
-  <section class="section" id="Acknowledgements" style="padding-top: 0rem;">
     <div class="container is-max-desktop content">
-      <h2 class="title is-4" style="font-weight: 700;">Acknowledgements</h2>
-      This work was supported by Defense Science and Technology Agency (DSTA) Contract #DST000EC124000205 and partially by DEVCOM Army Research Laboratory (ARL) under SARA Degraded SLAM CRA W911NF-20-S-0005. The compute for this work was provided by Bridges-2 at PSC through allocation cis220039p from the Advanced Cyberinfrastructure Coordination Ecosystem: Services & Support (ACCESS) program, which is supported by NSF grants #2138259, #2138286, #2138307, #2137603, and #213296. We thank Swaminathan Gurumurthy, Mihir Sharma, Jeff Tan, Shibo Zhao, Can Xu, Khiem Vuong, and other members of the AirLab for their insightful discussions and assistance with parts of the work. Lastly, shout out to Peter Kontschieder for one of the in-the-wild image pairs featured in the first figure.
+      <h2 class="title is-4" style="font-weight: 700;">BibTeX</h2>
+      <div class="bibtex-container">
+        <button class="copy-button" onclick="copyBibTeX()" title="Copy BibTeX">
+          <i class="fas fa-copy"></i>
+        </button>
+        <div class="copy-feedback" id="copyFeedback">Copied!</div>
+        <pre><code id="bibtexCode">@article{glue2024,
+ title={Don't Run with Scissors: Pruning Collapses VLA Model Performance and Safety but it can be Recovered},
+ author={Authors will be added later},
+ journal={To be submitted},
+ year={2024}
+}</code></pre>
+      </div>
     </div>
   </section>
+
+  <script>
+    async function copyBibTeX() {
+      const bibtexText = document.getElementById('bibtexCode').textContent;
+      const copyButton = document.querySelector('.copy-button');
+      const feedback = document.getElementById('copyFeedback');
+
+      try {
+        await navigator.clipboard.writeText(bibtexText);
+
+        // Show success feedback
+        copyButton.classList.add('copied');
+        copyButton.innerHTML = '<i class="fas fa-check"></i>';
+        feedback.classList.add('show');
+
+        // Reset after 2 seconds
+        setTimeout(() => {
+          copyButton.classList.remove('copied');
+          copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+          feedback.classList.remove('show');
+        }, 2000);
+
+      } catch (err) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = bibtexText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+
+        // Show success feedback
+        copyButton.classList.add('copied');
+        copyButton.innerHTML = '<i class="fas fa-check"></i>';
+        feedback.classList.add('show');
+
+        setTimeout(() => {
+          copyButton.classList.remove('copied');
+          copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+          feedback.classList.remove('show');
+        }, 2000);
+      }
+    }
+  </script>
+
+  <!-- Acknowledgements section removed for double-blind submission -->
 
   <footer class="footer">
     <div class="container">
@@ -523,21 +479,21 @@
     </div>
   </footer>
   <script src="static/js/comparison.js"></script>
-  
+
   <script>
     // Video gallery functionality
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       // Video data
       const videos = [
         {
-          title: "Ego-Exo4D: Cooking",
-          description: "First person view warped to the third person view by correspondence predicted by UFM.",
+          title: "Task 1: Manipulation",
+          description: "Demonstration of our method on robotic manipulation tasks.",
           videoUrl: "./resources/cooking.mp4",
           thumbnailUrl: "./resources/video_thumbnail/cooking.jpg"
         },
         {
-          title: "Ego-Exo4D: Bike",
-          description: "Third person view warped to the first person view by correspondence predicted by UFM.",
+          title: "Task 2: Navigation",
+          description: "Demonstration of our method on robotic navigation tasks.",
           videoUrl: "./resources/bike.mp4",
           thumbnailUrl: "./resources/video_thumbnail/bike.jpg"
         },
@@ -551,7 +507,7 @@
       const thumbnailsContainer = document.getElementById('thumbnails-container');
       // const prevBtn = document.getElementById('prev-btn');
       // const nextBtn = document.getElementById('next-btn');
-      
+
       let currentVideoIndex = 0;
 
       // Initialize gallery
@@ -563,27 +519,27 @@
           if (index === currentVideoIndex) {
             thumbnail.classList.add('active');
           }
-          
+
           thumbnail.innerHTML = `
             <img src="${video.thumbnailUrl}" alt="${video.title}">
             <div class="thumbnail-title">${video.title}</div>
           `;
-          
+
           thumbnail.addEventListener('click', () => {
             switchVideo(index);
           });
-          
+
           thumbnailsContainer.appendChild(thumbnail);
         });
-        
+
         // Set initial video
         updateMainVideo();
       }
-      
+
       // Switch video
       function switchVideo(index) {
         if (index === currentVideoIndex) return;
-        
+
         // Update active thumbnail
         document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
           if (i === currentVideoIndex) {
@@ -593,30 +549,30 @@
             thumb.classList.add('active');
           }
         });
-        
+
         currentVideoIndex = index;
         updateMainVideo();
       }
-      
+
       // Update main video
       function updateMainVideo() {
         const video = videos[currentVideoIndex];
-        
+
         // Fade out current video
         mainVideo.style.opacity = 0;
-        
+
         setTimeout(() => {
           mainVideoSource.src = video.videoUrl;
           mainVideo.load();
-          
+
           // Fade in new video
           mainVideo.style.opacity = 1;
-          
+
           videoTitle.textContent = video.title;
           videoDescription.textContent = video.description;
         }, 300);
       }
-      
+
       // Navigation
       // prevBtn.addEventListener('click', () => {
       //   let newIndex = currentVideoIndex - 1;
@@ -625,7 +581,7 @@
       //   }
       //   switchVideo(newIndex);
       // });
-      
+
       // nextBtn.addEventListener('click', () => {
       //   let newIndex = currentVideoIndex + 1;
       //   if (newIndex >= videos.length) {
@@ -633,12 +589,12 @@
       //   }
       //   switchVideo(newIndex);
       // });
-      
+
       // Initialize the gallery
       initGallery();
     });
   </script>
-  
+
   <!-- <script>
     document.addEventListener('DOMContentLoaded', function() {
       // Set initial camera positions for all model viewers
