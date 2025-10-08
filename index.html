@@ -639,85 +639,89 @@
 
             <!-- Side-by-side tables -->
             <div class="results-tables">
-              <!-- ===== Manipulation Table ===== -->
-              <div class="table-card">
-                <table class="styled-table">
-                  <thead>
-                    <tr>
-                      <th>Method</th>
-                      <th colspan="4">LIBERO (↑)</th>
-                      <th>Mean (↑)</th>
-                    </tr>
-                    <tr>
-                      <th></th>
-                      <th>Spatial</th>
-                      <th>Object</th>
-                      <th>Goal</th>
-                      <th>Long</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Full Dense</td><td>+0.0</td><td>+0.0</td><td>+0.0</td><td>+0.0</td><td>+0.0</td></tr>
-                    <tr><td>Full Sparse</td><td>−85.2</td><td>−72.4</td><td>−76.2</td><td>−55.8</td><td>−72.4</td></tr>
-                    <tr><td>Sparse Lang. BB</td><td>−69.5</td><td>−57.3</td><td>−58.5</td><td>−49.3</td><td>−58.7</td></tr>
-                    <tr><td>% Sparse Lang. BB</td><td>−71.6</td><td>−57.9</td><td>−57.8</td><td>−49.8</td><td>−59.3</td></tr>
-                    <tr class="highlight">
-                      <td><em>GLUESTICK-500</em></td>
-                      <td><strong>−32.8</strong></td>
-                      <td><strong>−34.9</strong></td>
-                      <td><strong>−32.9</strong></td>
-                      <td><strong>−42.2</strong></td>
-                      <td><strong>−35.7</strong></td>
-                    </tr>
-                  </tbody>
-                </table>
-                <p class="caption">
-                  <b>Change in success rate (%) relative to Full Dense.</b>
-                  Higher is better. Results averaged across OpenVLA and WorldVLA.
-                </p>
-              </div>
+                <!-- ===== Manipulation Table ===== -->
+                <div class="table-card">
+                  <div class="table-wrapper">
+                    <table class="styled-table">
+                      <thead>
+                        <tr>
+                          <th>Method</th>
+                          <th colspan="4">LIBERO (↑)</th>
+                          <th>Mean (↑)</th>
+                        </tr>
+                        <tr>
+                          <th></th>
+                          <th>Spatial</th>
+                          <th>Object</th>
+                          <th>Goal</th>
+                          <th>Long</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>Full Dense</td><td>+0.0</td><td>+0.0</td><td>+0.0</td><td>+0.0</td><td>+0.0</td></tr>
+                        <tr><td>Full Sparse</td><td>−85.2</td><td>−72.4</td><td>−76.2</td><td>−55.8</td><td>−72.4</td></tr>
+                        <tr><td>Sparse Lang. BB</td><td>−69.5</td><td>−57.3</td><td>−58.5</td><td>−49.3</td><td>−58.7</td></tr>
+                        <tr><td>% Sparse Lang. BB</td><td>−71.6</td><td>−57.9</td><td>−57.8</td><td>−49.8</td><td>−59.3</td></tr>
+                        <tr class="highlight">
+                          <td><em>GLUESTICK-500</em></td>
+                          <td><strong>−32.8</strong></td>
+                          <td><strong>−34.9</strong></td>
+                          <td><strong>−32.9</strong></td>
+                          <td><strong>−42.2</strong></td>
+                          <td><strong>−35.7</strong></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="caption">
+                    <b>Change in success rate (%) relative to Full Dense.</b>
+                    Higher is better. Results averaged across OpenVLA and WorldVLA.
+                  </p>
+                </div>
 
-              <div class="content has-text-justified" style="align-self: flex-start;">
-              <p>
-                Across all four LIBERO task suites, <b>GLUESTICK</b> recovers much of the lost success rate, demonstrating its effectiveness in restoring dexterous manipulation behavior.
-              </p>
-              </div>
-
-              <!-- ===== Navigation Table ===== -->
-              <div class="table-card">
-                <table class="styled-table">
-                  <thead>
-                    <tr>
-                      <th>Method</th>
-                      <th>ΔSucc. (↑)</th>
-                      <th>ΔUnsafe (↓)</th>
-                      <th>PL (↓)</th>
-                      <th>DG (↓)</th>
-                      <th>ΔRAM (↓)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>Full Dense</td><td>+0.0</td><td>+0.0</td><td>11.7</td><td>5.9</td><td>+0.00</td></tr>
-                    <tr><td>Full Sparse</td><td>−43.0</td><td>+23.0</td><td>17.6</td><td>9.5</td><td>−5.74</td></tr>
-                    <tr><td>Sparse Lang. BB</td><td>−20.0</td><td>+2.0</td><td>14.8</td><td>8.5</td><td>−5.68</td></tr>
-                    <tr><td>% Sparse Lang. BB</td><td>−18.0</td><td>+12.0</td><td>14.9</td><td>8.4</td><td>−4.59</td></tr>
-                    <tr><td>GLUESTICK-200</td><td>−2.0</td><td>−1.0</td><td>12.5</td><td>6.5</td><td>−5.36</td></tr>
-                    <tr class="highlight">
-                      <td><em>GLUESTICK-500</em></td>
-                      <td><strong>+1.0</strong></td>
-                      <td><strong>−4.0</strong></td>
-                      <td><strong>11.9</strong></td>
-                      <td><strong>5.9</strong></td>
-                      <td><strong>−4.60</strong></td>
-                    </tr>
-                  </tbody>
-                </table>
-                <p class="caption">
-                  <b>Navigation results.</b> Δ columns are relative to Full Dense; higher ΔSucc. and lower ΔUnsafe are better.
-                  PL = Path Length, DG = Final Distance to Goal, RAM = Peak Usage. Evaluated on the NaVILA model. 
+                <div class="content has-text-justified" style="align-self: flex-start;">
+                <p>
+                  Across all four LIBERO task suites, <b>GLUESTICK</b> recovers much of the lost success rate, demonstrating its effectiveness in restoring dexterous manipulation behavior.
                 </p>
-              </div>
+                </div>
+
+                <!-- ===== Navigation Table ===== -->
+                <div class="table-card">
+                  <div class="table-wrapper">
+                    <table class="styled-table">
+                      <thead>
+                        <tr>
+                          <th>Method</th>
+                          <th>ΔSucc. (↑)</th>
+                          <th>ΔUnsafe (↓)</th>
+                          <th>PL (↓)</th>
+                          <th>DG (↓)</th>
+                          <th>ΔRAM (↓)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>Full Dense</td><td>+0.0</td><td>+0.0</td><td>11.7</td><td>5.9</td><td>+0.00</td></tr>
+                        <tr><td>Full Sparse</td><td>−43.0</td><td>+23.0</td><td>17.6</td><td>9.5</td><td>−5.74</td></tr>
+                        <tr><td>Sparse Lang. BB</td><td>−20.0</td><td>+2.0</td><td>14.8</td><td>8.5</td><td>−5.68</td></tr>
+                        <tr><td>% Sparse Lang. BB</td><td>−18.0</td><td>+12.0</td><td>14.9</td><td>8.4</td><td>−4.59</td></tr>
+                        <tr><td>GLUESTICK-200</td><td>−2.0</td><td>−1.0</td><td>12.5</td><td>6.5</td><td>−5.36</td></tr>
+                        <tr class="highlight">
+                          <td><em>GLUESTICK-500</em></td>
+                          <td><strong>+1.0</strong></td>
+                          <td><strong>−4.0</strong></td>
+                          <td><strong>11.9</strong></td>
+                          <td><strong>5.9</strong></td>
+                          <td><strong>−4.60</strong></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="caption">
+                    <b>Navigation results.</b> Δ columns are relative to Full Dense; higher ΔSucc. and lower ΔUnsafe are better.
+                    PL = Path Length, DG = Final Distance to Goal, RAM = Peak Usage. Evaluated on the NaVILA model. 
+                  </p>
+                </div>
             </div>
 
 
@@ -747,11 +751,19 @@
                 margin-bottom: 2rem;         /* space between stacked tables */
               }
 
+              .table-wrapper {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+              }
+
               .styled-table {
                 width: 100%;
                 border-collapse: collapse;
                 font-size: 0.92rem;
+                min-width: 500px; /* ensures nice layout on scroll */
                 font-family: 'Noto Sans', sans-serif;
+
               }
 
               .styled-table th {
