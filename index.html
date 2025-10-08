@@ -4,28 +4,56 @@
 <head>
   <meta charset="utf-8">
   <meta name="description"
-    content="Vision-Language-Action (VLA) models are powerful robotic controllers, yet remain memory-intensive to deploy. We investigate applying pruning algorithms to VLAs and introduce GLUE, a post-pruning recovery method that preserves memory savings while restoring performance and safety.">
-  <meta name="keywords" content="GLUE,VLA,Pruning,Robotics,Safety,Memory Efficiency">
+        content="Vision-Language-Action (VLA) models have advanced robotic capabilities
+            but remain challenging to deploy on resource-limited hardware. Pruning
+            has enabled efficient compression of large language models (LLMs), yet it
+            is largely understudied in robotics. Surprisingly, we observe that pruning
+            VLA models leads to drastic degradation and increased safety violations.
+            We introduce GLUESTICK, a post-pruning recovery method that restores much of
+             the original model's functionality while retaining sparsity benefits" />
+  <meta name="keywords" content="GLUESTICK,Vision-Language-Action,VLA,Pruning,Robotics,Safety,Memory Efficiency">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="image" content="https://gluestick-vla.github.io/resources/teaser.jpg">
-  <title>Don't Run with Scissors: Pruning Collapses VLA Model Performance and Safety but it can be Recovered</title>
-
+  <title>Don't Run with Scissors: Pruning Breaks VLA Models but They Can Be Recovered</title>
 
   <meta property="og:title"
-    content="Don't Run with Scissors: Pruning Collapses VLA Model Performance and Safety but it can be Recovered" />
+    content="Don't Run with Scissors: Pruning Breaks VLA Models but They Can Be Recovered" />
   <meta property="og:description"
-    content="Vision-Language-Action (VLA) models are powerful robotic controllers, yet remain memory-intensive to deploy. We investigate applying pruning algorithms to VLAs and introduce GLUE, a post-pruning recovery method that preserves memory savings while restoring performance and safety." />
+    content="Vision-Language-Action (VLA) models have advanced robotic capabilities
+            but remain challenging to deploy on resource-limited hardware. Pruning
+            has enabled efficient compression of large language models (LLMs), yet it
+            is largely understudied in robotics. Surprisingly, we observe that pruning
+            VLA models leads to drastic degradation and increased safety violations.
+            We introduce GLUESTICK, a post-pruning recovery method that restores much of
+             the original model's functionality while retaining sparsity benefits" />
   <!-- Twitter automatically scrapes this. Go to https://cards-dev.twitter.com/validator?
       if you update and want to force Twitter to re-scrape. -->
   <meta property="twitter:card" content="summary" />
   <meta property="twitter:title"
-    content="Don't Run with Scissors: Pruning Collapses VLA Model Performance and Safety but it can be Recovered" />
+    content="Don't Run with Scissors: Pruning Breaks VLA Models but They Can Be Recovered" />
   <meta property="twitter:description"
-    content="Vision-Language-Action (VLA) models are powerful robotic controllers, yet remain memory-intensive to deploy. We investigate applying pruning algorithms to VLAs and introduce GLUE, a post-pruning recovery method that preserves memory savings while restoring performance and safety." />
-  <!-- <meta property="twitter:image"         content="https://3dmagicpony.github.io/resources/overview.jpg" /> -->
+    content="Vision-Language-Action (VLA) models have advanced robotic capabilities
+            but remain challenging to deploy on resource-limited hardware. Pruning
+            has enabled efficient compression of large language models (LLMs), yet it
+            is largely understudied in robotics. Surprisingly, we observe that pruning
+            VLA models leads to drastic degradation and increased safety violations.
+            We introduce GLUESTICK, a post-pruning recovery method that restores much of
+             the original model's functionality while retaining sparsity benefits" />
+    <!-- <meta property="twitter:image"         content="https://3dmagicpony.github.io/resources/overview.jpg" /> -->
 
   <!-- MathJax library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']]},
+      TeX: {
+        Macros: {
+          method: "\\mathrm{GLUESTICK}"   // defines \method → GLUESTICK in math mode
+        }
+      }
+    });
+  </script>
 
 
   <!-- Google Analytics removed for template -->
@@ -55,8 +83,8 @@
       <div class="container is-max-desktop">
         <div class="columns is-centered">
           <div class="column has-text-centered">
-            <h1 class="title is-4 publication-title" style="font-size: 2rem;">Don't Run with Scissors: Pruning Collapses
-              VLA Model<br>Performance and Safety but it can be Recovered</h1>
+            <h1 class="title is-4 publication-title" style="font-size: 2rem;"> Don't Run with Scissors <img src="./resources/purple_scissors.png" alt="Scissors Emoji" style="width: 1em; vertical-align: middle;"> : Pruning Breaks<br>VLA Models but They Can Be Recovered </h1>
+            
             <!-- Authors will be added later -->
 
             <!-- <h1 style="font-size:24px;font-weight:bold">CVPR 2025 Best Paper Award Candidate</h1> -->
@@ -75,7 +103,8 @@
                     <span>Paper (Coming Soon)</span>
                   </a>
                 </span>
-                <!-- ArXiv Link. -->
+                 
+                <!-- ArXiv Link.
                 <span class="link-block">
                   <a href="#" class="external-link button is-normal is-rounded is-dark" onclick="return false;">
                     <span class="icon">
@@ -84,7 +113,8 @@
                     <span>ArXiv (Coming Soon)</span>
                   </a>
                 </span>
-                <!-- Code Link. -->
+                 -->
+                <!-- Code Link.
                 <span class="link-block">
                   <a href="#" class="external-link button is-normal is-rounded is-dark" onclick="return false;">
                     <span class="icon">
@@ -93,6 +123,7 @@
                     <span>Code (Coming Soon)</span>
                   </a>
                 </span>
+                 -->
               </div>
 
             </div>
@@ -167,233 +198,593 @@
 
       <div class="columns is-centered">
         <div class="column is-full-width has-text-centered">
-
-          <div class="content has-text-justified">
+          <!-- <div class="content has-text-justified">
             <p>
-              <b>TLDR:</b> We investigate applying pruning algorithms to Vision-Language-Action (VLA) models and find
-              that pruning achieves memory savings but degrades performance and increases safety violations. We
-              introduce GLUE, a post-pruning recovery method that preserves memory savings while restoring performance
-              and safety through weight-space interpolation and SVD-based correction.
+              <b>TLDR:</b> We observe that pruning severely harms VLA models, and introduce GLUESTICK a recovery algorithm that restores task success and safety.
             </p>
-          </div>
+          </div> -->
 
           <div class="content has-text-centered">
-            <!-- Teaser Collage -->
-            <img id="teaser-collage" src="./resources/teaser_collage.webp" alt="Teaser Collage"
-              style="width: 100%; margin-bottom: 0.5rem;">
+            <!-- ==================================== -->
+            <!-- ============== Teaser Image  ============= -->
+            <!-- ==================================== -->
+            <img id="teaser-collage" src="./resources/gluestick_spotlight.png" alt="Teaser Collage"
+              style="width: 90%; margin-bottom: 0.5rem;">
             <p style="margin-bottom: 1.5rem;">
-              Our method preserves memory efficiency while maintaining performance and safety in robotic tasks.
+              VLAs break under pruning, and <b>GLUESTICK</b> fixes them. Pruning
+              methods unexpectedly cause task and safety failures in VLAs: colliding with an object in
+              a navigation task <b>(left)</b>, or dropping a bowl in a manipulation task <b>(right)</b>. Our post
+              pruning method, GLUESTICK, restores the lost functionality of the original model.
             </p>
 
-            <!-- Original Teaser Image -->
-            <!-- <img id="teaser" src="https://placehold.co/600x400" alt="Teaser image" style="width: 100%;"> -->
-            <img id="qualitative-comp" src="./resources/teaser.jpg" alt="Qualitative Comparison"
-              style="margin-bottom: 0.5rem;">
-            <p style="margin-bottom: 1rem;">
-              GLUE achieves competitive memory efficiency while substantially recovering success rates and reducing
-              safety violations.
-            </p>
-          </div>
+          
+            <!-- ==================================== -->
+            <!-- ============== Abstract  ============= -->
+            <!-- ==================================== -->
+            <h2 class="title is-4" style="font-weight: 700;">Abstract</h2>
+            <div class="content has-text-justified">
+              <p>
+              Vision-Language-Action (VLA) models have advanced robotic capabilities
+              but remain challenging to deploy on resource-limited hardware. Pruning
+              has enabled efficient compression of large language models (LLMs), yet it
+              is largely understudied in robotics. Surprisingly, we observe that pruning
+              VLA models leads to drastic degradation and increased safety violations.
+              We introduce <b>GLUESTICK</b>, a post-pruning recovery method that restores 
+              much of the original model's functionality while retaining sparsity
+              benefits. Our method performs a one-time interpolation between the dense
+              and pruned models in weight-space to compute a corrective term. This
+              correction is used during inference by each pruned layer to recover lost
+              capabilities with minimal overhead. GLUESTICK requires no additional
+              training, is agnostic to the pruning algorithm, and introduces a single hyperparameter 
+              that controls the tradeoff between efficiency and accuracy.
+              Across diverse VLA architectures and tasks in manipulation and navigation, 
+              GLUESTICK achieves competitive memory efficiency while substantially 
+              recovering success rates and reducing safety violations.
+              </p>
+            </div>
 
-          <h2 class="title is-4" style="font-weight: 700;">Abstract</h2>
-          <div class="content has-text-justified">
-            <p>
-              Vision-Language-Action (VLA) models are powerful robotic controllers, yet remain memory-intensive to
-              deploy. Motivated by pruning successes in large language models (LLMs), we investigate applying pruning
-              algorithms to VLAs. We find that pruning achieves the expected memory savings but sharply degrades
-              performance and increases safety violations. We introduce GLUE, a post-pruning recovery method that
-              preserves the memory savings while restoring performance and safety. GLUE performs a simple weight-space
-              interpolation between dense and pruned models and applies an SVD-based low-rank correction, restoring
-              critical representational capacity without retraining. Across diverse VLA architectures and tasks in
-              manipulation and navigation, GLUE achieves competitive memory efficiency while substantially recovering
-              success rates and reducing safety violations.
-            </p>
-          </div>
-          <br>
 
-          <h2 class="title is-4" style="font-weight: 700;">Method</h2>
-          <div class="content has-text-justified">
-            <p>
-              GLUE (Gradient-based Low-rank Update Enhancement) is a post-pruning recovery method designed to restore
-              the performance and safety of pruned VLA models. The method performs weight-space interpolation between
-              the original dense model and the pruned model, followed by an SVD-based low-rank correction that restores
-              critical representational capacity. This approach preserves the memory savings achieved through pruning
-              while substantially recovering success rates and reducing safety violations across diverse VLA
-              architectures and robotic tasks.
-            </p>
-          </div>
-          <div class="content has-text-centered">
-            <!-- <img id="teaser" src="https://placehold.co/600x400" alt="Teaser image" style="width: 100%;"> -->
-            <img id="architecture-img" src="./resources/ufm_method.png" alt="Architecture">
-          </div>
+            </div>
 
-          <br>
-
-          <!-- Updated Video Gallery -->
-          <h2 class="title is-4" style="font-weight: 700;">Video Gallery</h2>
-          <div class="content has-text-justified">
-            <p>
-              Demonstration videos showing the performance of our method on various robotic tasks.
+            <!-- ==================================== -->
+            <!-- ============== Method  ============= -->
+            <!-- ==================================== -->
+            <img id="teaser-collage" src="./resources/gluestick_method.png" alt="GLUESTICK Method"
+              style="width: 80%; margin-bottom: 0.5rem;">
+            <p style="margin-bottom: 1.5rem;">
+              <b>Overview of GLUESTICK. (Top)</b> A VLA model is pruned with a standard 
+              algorithm (e.g., Wanda) to enforce 2:4 sparsity in linear layers. <b>(Middle)</b> Offline, we
+              compute the gap between the dense and pruned weights and extract dominant lost directions
+              via SVD, yielding lightweight corrections. <b>(Bottom)</b> At inference time, these correction
+              terms are applied alongside the pruned weights, effectively adding back lost signal.
             </p>
-          </div>
-          <div class="gallery-container">
-            <div class="main-video-container">
-              <video id="main-video" autoplay muted loop playsinline>
-                <source src="./resources/bike.mp4" type="video/mp4">
-              </video>
-              <div class="video-info">
-                <h2 class="video-title" id="video-title">Robotic Task Demonstration</h2>
-                <p class="video-description" id="video-description">Our method demonstrates improved performance and
-                  safety in robotic manipulation tasks.</p>
+            <br>
+
+            <h2 class="title is-4" style="font-weight: 700;">Method</h2>
+
+
+            <div class="content has-text-justified">
+              <p>
+                We propose <strong>\(\method\)</strong>, a post-hoc, training-free recovery method that operates entirely in weight space 
+                and is agnostic to the pruning algorithm (see Figure&nbsp;1).
+                \(\method\) requires only the original dense model and its pruned counterpart, and incurs a one-time offline cost; 
+                no additional training is required.
+              </p>
+
+              <p>
+                Specifically, for each linear layer with dense weight matrix 
+                \(
+                  W_\mathrm{dense}\in\mathbb{R}^{d_\mathrm{out}\times d_\mathrm{in}}
+                \)
+                and its pruned version \(W_{\text{pruned}}\) (fixed, preserving the original 2:4/4:8 pattern),
+                we define the <em>gap matrix</em>:
+              </p>
+
+              \[
+                W_\mathrm{gap} = W_\mathrm{dense} - W_\mathrm{pruned}
+              \]
+
+              <p>
+                which captures lost information due to pruning. We then compute a truncated singular value decomposition (SVD)
+                of the gap matrix:
+              </p>
+
+              \[
+                W_\mathrm{gap} = U \Sigma V^\top \approx U_r\Sigma_r V_r^\top
+              \]
+
+              <p>
+                keeping the top \(r\) singular components. This is the <em>best rank-\(r\)</em> approximation to \(W_\mathrm{gap}\) 
+                in Frobenius norm.
+                For memory and speed, we fold the singular values into one term so that only two compact matrices need to be stored:
+              </p>
+
+              \[
+                A = U_r \Sigma_r \in \mathbb{R}^{d_\mathrm{out}\times r}, \quad 
+                B = V_r \in \mathbb{R}^{d_\mathrm{in} \times r}
+              \]
+
+              <p>
+                During inference, \(\method\) adds a lightweight correction around each pruned layer:
+              </p>
+
+              \[
+                h(x) = W_\mathrm{pruned} x + A(B^\top x)
+              \]
+
+              <p>
+                which re-injects the dominant lost directions at low cost while leaving \(W_\mathrm{pruned}\) unchanged, 
+                thereby preserving the efficiency gains of structured sparsity with a minimal overhead addition from the correction term.
+                The extra compute from this correction is:
+              </p>
+
+              \[
+                \underbrace{W_\mathrm{pruned} x}_{\text{efficient sparse matmul}}
+                +
+                \underbrace{B^{\top} x}_{\mathcal{O}(d_{\mathrm{in}}\,r)}
+                +
+                \underbrace{A(\,\cdot\,)}_{\mathcal{O}(d_{\mathrm{out}}\,r)},
+              \]
+
+              <p>
+                or \(\mathcal{O}((d_\mathrm{in}+d_\mathrm{out})r)\) on top of the sparse matrix multiplication, 
+                versus \(\mathcal{O}(d_\mathrm{in}d_\mathrm{out})\) for the dense layer.
+                Our correction adds only \((d_\mathrm{in}+d_\mathrm{out})r\) extra parameters per layer, which is small compared to 
+                \(d_\mathrm{in}d_\mathrm{out}\) in the dense case. With \(r \ll \min\{d_\mathrm{in}, d_\mathrm{out}\}\),
+                \(\method\) preserves the efficiency gains of structured 50% sparsity.
+              </p>
+            </div>
+
+
+
+            <br>
+
+
+            <!-- ==================================== -->
+            <!-- ====== Video Gallery Section  ====== -->
+            <!-- ==================================== -->
+            <h2 class="title is-4" style="font-weight: 700;">Video Gallery</h2>
+            <div class="content has-text-justified">
+              <p>
+                Comparison of a <strong>GLUESTICK</strong> recovered model and a <strong>Pruned</strong> model on robotic
+                <em>Manipulation</em> and <em>Navigation</em> tasks.
+                Each pair demonstrates success and safety (GLUESTICK) versus failure and unsafe behavior (Pruned).
+              </p>
+            </div>
+
+            <div class="video-gallery">
+
+              <!-- Manipulation Row -->
+              <div class="video-row">
+                <h3 class="task-title">Manipulation</h3>
+                <div class="video-pair">
+                  <!-- UNSAFE (left) -->
+                  <div class="video-card unsafe">
+                    <video autoplay muted loop playsinline>
+                      <source src="./resources/manipulation_pruned.mp4" type="video/mp4">
+                    </video>
+                    <div class="label-below">
+                      <img src="./resources/purple_scissors.png" class="label-icon" alt="Pruned Icon" style="width: 1em; vertical-align: -0.2em;">
+                      <span class="method-name pruned-text">PRUNED</span> — <span class="status unsafe-text">Unsafe & Failed</span>
+                    </div>
+                  </div>
+
+                  <!-- SAFE (right) -->
+                  <div class="video-card safe">
+                    <video autoplay muted loop playsinline>
+                      <source src="./resources/manipulation_gluestick.mp4" type="video/mp4">
+                    </video>
+                    <div class="label-below">
+                      <img src="./resources/orange_gluestick.png" class="label-icon" alt="GLUESTICK Icon" style="width: .8em; vertical-align: -0.2em;">
+                      <span class="method-name gluestick-text">GLUESTICK</span> — <span class="status safe-text">Safe & Successful</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Manipulation instruction -->
+                <div class="task-instruction-gradient">
+                  <strong>Task Instruction:</strong> "Put the Bowl on top of the cabinet"
+                </div>
+              </div>
+
+              <!-- Navigation Row -->
+              <div class="video-row">
+                <h3 class="task-title">Navigation</h3>
+                <div class="video-pair">
+                  <!-- UNSAFE (left) -->
+                  <div class="video-card unsafe">
+                    <video autoplay muted loop playsinline>
+                      <source src="./resources/navigation_pruned.mp4" type="video/mp4">
+                    </video>
+                    <div class="label-below">
+                      <img src="./resources/purple_scissors.png" class="label-icon" alt="Pruned Icon" style="width: 1em; vertical-align: -0.2em;">
+                      <span class="method-name pruned-text">PRUNED</span> — <span class="status unsafe-text">Unsafe & Failed</span>
+                    </div>
+                  </div>
+
+                  <!-- SAFE (right) -->
+                  <div class="video-card safe">
+                    <video autoplay muted loop playsinline>
+                      <source src="./resources/navigation_gluestick.mp4" type="video/mp4">
+                    </video>
+                    <div class="label-below">
+                      <img src="./resources/orange_gluestick.png" class="label-icon" alt="GLUESTICK Icon" style="width: .8em; vertical-align: -0.2em;">
+                      <span class="method-name gluestick-text">GLUESTICK</span> — <span class="status safe-text">Safe & Successful</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Navigation instruction -->
+                <div class="task-instruction-gradient">
+                  <strong>Task Instruction:</strong> "Enter the dining room and walk to the other end"
+                </div>
               </div>
             </div>
 
-            <div class="thumbnails-container" id="thumbnails-container">
-              <!-- Thumbnails will be added by JavaScript -->
-            </div>
 
-            <div class="gallery-controls">
-              <!-- <button class="gallery-btn" id="prev-btn">
-                <i class="fas fa-arrow-left"></i> Previous
-              </button>
-              <button class="gallery-btn" id="next-btn">
-                Next <i class="fas fa-arrow-right"></i>
-              </button> -->
-            </div>
-          </div>
-
-          <style>
-            .thumbnail-container img,
-            .thumbnail-container video {
-              transition: all 0.3s ease;
-              border: 3px solid transparent;
-              cursor: pointer;
-            }
-
-            .thumbnail-selected {
-              transform: scale(1.2);
-              border: 6px solid #79b4f2 !important;
-              box-shadow: 0 0 10px rgba(121, 180, 242, 0.5);
-              z-index: 10;
-              position: relative;
-            }
-
-            /* New styles for responsive horizontal gallery */
-            .thumbnail-container {
+            <!-- ====== CSS ====== -->
+            <style>
+            .video-gallery {
               display: flex;
-              flex-wrap: nowrap;
-              overflow-x: auto;
-              gap: 10px;
-              padding: 10px 0;
-              -webkit-overflow-scrolling: touch;
-              /* Smooth scrolling on iOS */
-              scrollbar-width: thin;
-              align-items: center;
+              flex-direction: column;
+              gap: .5em;
+              margin-top: 1.5rem;
             }
 
-            .thumbnail-container img,
-            .thumbnail-container video {
-              flex: 0 0 auto;
-              width: auto;
-              height: 120px;
-              /* Consistent height */
-              object-fit: cover;
-              max-width: none;
+            .task-title {
+              font-size: 1.4rem;
+              font-weight: 600;
+              text-align: center;
+              margin-bottom: 1rem;
+              color: #222;
             }
 
-            /* Custom scrollbar styling */
-            .thumbnail-container::-webkit-scrollbar {
-              height: 6px;
+            .video-pair {
+              display: flex;
+              justify-content: center;
+              align-items: flex-start;
+              gap: 2rem;
+              flex-wrap: wrap;
             }
 
-            .thumbnail-container::-webkit-scrollbar-track {
-              background: #f1f1f1;
-              border-radius: 10px;
+            .video-card {
+              position: relative;
+              text-align: center;
+              border-radius: 12px;
+              overflow: hidden;
+              transition: transform 0.3s ease, box-shadow 0.4s ease;
+              max-width: 600px;
+              flex: 1 1 45%;
             }
 
-            .thumbnail-container::-webkit-scrollbar-thumb {
-              background: #888;
-              border-radius: 10px;
+            .video-card video {
+              width: 100%;
+              height: auto;
+              display: block;
+              border-radius: 12px;
+              transition: transform 0.3s ease;
             }
 
-            .thumbnail-container::-webkit-scrollbar-thumb:hover {
-              background: #555;
+            .video-card:hover video {
+              transform: scale(1.02);
             }
 
-            /* Adjust for smaller screens */
-            @media (max-width: 768px) {
+            /* Glow around the video boxes */
+            .video-card.safe {
+              box-shadow: 0 0 1.5em rgba(220, 90, 47, 0.6); /* GLUESTICK orange glow */
+            }
 
-              .thumbnail-container img,
-              .thumbnail-container video {
-                height: 100px;
+            .video-card.unsafe {
+              box-shadow: 0 0 1.5em rgba(127, 99, 177, 0.6); /* PRUNED purple glow */
+            }
+
+            .video-card.safe:hover {
+              box-shadow: 0 0 3em rgba(220, 90, 47, 0.95); /* stronger orange on hover */
+            }
+
+            .video-card.unsafe:hover {
+              box-shadow: 0 0 3em rgba(127, 99, 177, 0.95); /* stronger purple on hover */
+            }
+
+
+            .label-below {
+              margin-top: 0.6rem;
+              font-weight: 600;
+              font-size: 1rem;
+              color: #444;
+            }
+
+            .safe-text {
+              color: #DC5A2F;
+            }
+
+            .unsafe-text {
+              color: #7F63B1;
+            }
+
+            .emoji {
+              font-size: 1.2rem;
+              margin-right: 0.3rem;
+            }
+
+            .task-instruction-gradient {
+              margin: 1.6rem auto;               /* equal spacing above and below */
+              padding: 0.35rem 1rem;             /* thinner height */
+              text-align: center;
+              font-size: 0.85rem;                /* slightly smaller text */
+              font-weight: 500;
+              color: #000;
+              border-radius: 6px;
+              width: fit-content;
+              max-width: 85%;
+              background: linear-gradient(
+                90deg,
+                rgba(127, 99, 177, 0.55) 0%,     /* purple (left, PRUNED) */
+                rgba(220, 90, 47, 0.55) 100%     /* orange (right, GLUESTICK) */
+              );
+              box-shadow:
+                0 0 .5em rgba(127, 99, 177, 0.25),
+                0 0 .5em rgba(220, 90, 47, 0.25); /* gentle glow matching gradient */
+              font-family: 'Noto Sans', sans-serif;
+              line-height: 1.3;
+              letter-spacing: 0.25px;
+              backdrop-filter: blur(4px);
+            }
+
+            .task-instruction-gradient strong {
+              font-weight: 700;
+              color: #000;
+            }
+
+            .task-instruction-gradient:hover {
+              box-shadow:
+                0 0 1em rgba(127, 99, 177, 0.35),
+                0 0 1em rgba(220, 90, 47, 0.35);
+              transform: scale(1.01);
+              transition: all 0.25s ease;
+            }
+
+            /* Flip the header gradient too (to match left→right orientation) */
+            .hero {
+              background: linear-gradient(
+                90deg,
+                rgba(127, 99, 177, 0.55) 0%,     /* purple (left) */
+                rgba(220, 90, 47, 0.55) 100%     /* orange (right) */
+              );
+              color: #fff;
+              padding: 2em 0 0 0;
+              margin-bottom: 3em;
+              width: 100%;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+
+
+            .hero .hero-body {
+              padding-top: 1em !important;
+              padding-bottom: .8em !important; /* makes the header thinner */
+            }
+
+            .hero + section {
+              margin-top: 1.5em; /* adds breathing room before next section */
+            }
+
+            /* Responsive adjustments */
+            @media (max-width: 900px) {
+              .video-pair {
+                flex-direction: column;
+                align-items: center;
+              }
+
+              .video-card {
+                max-width: 90%;
+              }
+
+              .label-below {
+                font-size: 0.95rem;
               }
             }
-          </style>
-          <script>
-            // The problem is here - you're trying to select an element that doesn't exist
-            // document.querySelector('#thumbnail-qualitative img[src="resources/qualitative/college.png"]').classList.add('thumbnail-selected');
+            </style>
 
-            // Instead, select the first element that actually exists in your thumbnail container
-            document.addEventListener('DOMContentLoaded', function () {
-              // Select the first element in the thumbnail container (video or image)
-              const firstThumbnail = document.querySelector('#thumbnail-qualitative video, #thumbnail-qualitative img');
-              if (firstThumbnail) {
-                firstThumbnail.classList.add('thumbnail-selected');
-                // If it's a video, play it
-                if (firstThumbnail.tagName.toLowerCase() === 'video') {
-                  firstThumbnail.play();
-                }
-              }
-
-              document.querySelectorAll('#thumbnail-qualitative img, #thumbnail-qualitative video').forEach(el => {
-                // Rest of your click handler code remains the same
-                el.addEventListener('click', () => {
-                  const glbSrc = el.getAttribute('data-glb');
-                  const modelViewer = document.getElementById('QualitativeResult');
-                  modelViewer.setAttribute('src', glbSrc);
-                  modelViewer.cameraOrbit = "180deg 70deg auto";
-                  modelViewer.resetTurntableRotation(0);
-                  modelViewer.jumpCameraToGoal();
-
-                  // Remove selection class from all elements
-                  document.querySelectorAll('#thumbnail-qualitative img, #thumbnail-qualitative video').forEach(element => {
-                    element.classList.remove('thumbnail-selected');
-                  });
-
-                  // Add selection class to clicked element
-                  el.classList.add('thumbnail-selected');
-
-                  // Play video if it's a video element
-                  if (el.tagName.toLowerCase() === 'video') {
-                    el.play();
-                  }
-
-                  // Pause all other videos
-                  document.querySelectorAll('#thumbnail-qualitative video').forEach(video => {
-                    if (video !== el) {
-                      video.pause();
-                      video.currentTime = 0;
-                    }
-                  });
-                });
-              });
+            <!-- Play video in a loop -->
+            <script>
+            document.querySelectorAll('.video-card video').forEach(video => {
+              video.autoplay = true;
+              video.loop = true;
+              video.muted = true;
+              video.play();
             });
-          </script>
+            </script>
 
-          <br>
 
-          <h2 class="title is-4" style="font-weight: 700;">Results</h2>
-          <div class="content has-text-justified" style="align-self: flex-start;">
-            <p>
-              Our method achieves competitive memory efficiency while substantially recovering success rates and
-              reducing safety violations across diverse VLA architectures and tasks.
-            </p>
-          </div>
 
-          <div class="content has-text-centered">
-            <!-- <img id="teaser" src="https://placehold.co/600x400" alt="Teaser image" style="width: 100%;"> -->
-            <img id="qualitative-comp" src="./resources/qualitative_comp.jpg" alt="Qualitative Comparison">
-          </div>
+            <script>
+            // Start navigation videos at custom times
+            const navGlue = document.querySelector('video source[src*="navigation_gluestick.mp4"]')?.parentElement;
+            const navPruned = document.querySelector('video source[src*="navigation_pruned.mp4"]')?.parentElement;
+
+            if (navGlue) {
+              navGlue.currentTime = 17;  // start at 17 seconds
+              navGlue.play();
+
+              // Loop between 17s and 43s
+              navGlue.addEventListener('timeupdate', () => {
+                if (navGlue.currentTime >= 43) {
+                  navGlue.currentTime = 17;  // jump back to start time
+                  navGlue.play();
+                }
+                });
+            }
+            
+
+            if (navPruned) {
+              navPruned.currentTime = 6;  // start at 6 seconds
+              navPruned.play();
+            }
+            </script>
+
+            <br>
+
+            <!-- ===================== -->
+            <!-- ====== Results ====== -->
+            <!-- ===================== -->
+            <h2 class="title is-4" style="font-weight: 700;">Results</h2>
+            <div class="content has-text-justified" style="align-self: flex-start;">
+              <p>
+                Our method recovers task success rates and reduces safety violations across VLA architectures (OpenVLA, WorldVLA, and NaVILA) and domains (Manipulation and Navigation), while maintaining pruning efficiency.             
+              </p>
+            </div>
+
+            <!-- Side-by-side tables -->
+            <div class="results-tables">
+              <!-- ===== Manipulation Table ===== -->
+              <div class="table-card">
+                <table class="styled-table">
+                  <thead>
+                    <tr>
+                      <th>Method</th>
+                      <th colspan="4">LIBERO (↑)</th>
+                      <th>Mean (↑)</th>
+                    </tr>
+                    <tr>
+                      <th></th>
+                      <th>Spatial</th>
+                      <th>Object</th>
+                      <th>Goal</th>
+                      <th>Long</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Full Dense</td><td>+0.0</td><td>+0.0</td><td>+0.0</td><td>+0.0</td><td>+0.0</td></tr>
+                    <tr><td>Full Sparse</td><td>−85.2</td><td>−72.4</td><td>−76.2</td><td>−55.8</td><td>−72.4</td></tr>
+                    <tr><td>Sparse Lang. BB</td><td>−69.5</td><td>−57.3</td><td>−58.5</td><td>−49.3</td><td>−58.7</td></tr>
+                    <tr><td>% Sparse Lang. BB</td><td>−71.6</td><td>−57.9</td><td>−57.8</td><td>−49.8</td><td>−59.3</td></tr>
+                    <tr class="highlight">
+                      <td><em>GLUESTICK-500</em></td>
+                      <td><strong>−32.8</strong></td>
+                      <td><strong>−34.9</strong></td>
+                      <td><strong>−32.9</strong></td>
+                      <td><strong>−42.2</strong></td>
+                      <td><strong>−35.7</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="caption">
+                  <b>Change in success rate (%) relative to Full Dense.</b>
+                  Higher is better. Results averaged across OpenVLA and WorldVLA.
+                </p>
+              </div>
+
+              <div class="content has-text-justified" style="align-self: flex-start;">
+              <p>
+                Across all four LIBERO task suites, <b>GLUESTICK</b> recovers much of the lost success rate, demonstrating its effectiveness in restoring dexterous manipulation behavior.
+              </p>
+              </div>
+
+              <!-- ===== Navigation Table ===== -->
+              <div class="table-card">
+                <table class="styled-table">
+                  <thead>
+                    <tr>
+                      <th>Method</th>
+                      <th>ΔSucc. (↑)</th>
+                      <th>ΔUnsafe (↓)</th>
+                      <th>PL (↓)</th>
+                      <th>DG (↓)</th>
+                      <th>ΔRAM (↓)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Full Dense</td><td>+0.0</td><td>+0.0</td><td>11.7</td><td>5.9</td><td>+0.00</td></tr>
+                    <tr><td>Full Sparse</td><td>−43.0</td><td>+23.0</td><td>17.6</td><td>9.5</td><td>−5.74</td></tr>
+                    <tr><td>Sparse Lang. BB</td><td>−20.0</td><td>+2.0</td><td>14.8</td><td>8.5</td><td>−5.68</td></tr>
+                    <tr><td>% Sparse Lang. BB</td><td>−18.0</td><td>+12.0</td><td>14.9</td><td>8.4</td><td>−4.59</td></tr>
+                    <tr><td>GLUESTICK-200</td><td>−2.0</td><td>−1.0</td><td>12.5</td><td>6.5</td><td>−5.36</td></tr>
+                    <tr class="highlight">
+                      <td><em>GLUESTICK-500</em></td>
+                      <td><strong>+1.0</strong></td>
+                      <td><strong>−4.0</strong></td>
+                      <td><strong>11.9</strong></td>
+                      <td><strong>5.9</strong></td>
+                      <td><strong>−4.60</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="caption">
+                  <b>Navigation results.</b> Δ columns are relative to Full Dense; higher ΔSucc. and lower ΔUnsafe are better.
+                  PL = Path Length, DG = Final Distance to Goal, RAM = Peak Usage. Evaluated on the NaVILA model. 
+                </p>
+              </div>
+            </div>
+
+
+              <div class="content has-text-justified" style="align-self: flex-start;">
+              <p>
+                On the VLN-CE-Isaac benchmark, GLUESTICK restores all of the lost success rate, demonstrating its effectiveness in recovering navigation behavior.
+                This recovery is not limited to task completion, GLUESTICK also restores path length and final distance-to-goal, matching the behavior of the original model.
+                Importantly, it also restores safety to the level of the original model while maintaining competitive memory efficiency.
+                              
+              </p>
+            </div>
+            <!-- ====== Table Styling ====== -->
+            
+            <style>
+              .results-tables {
+                display: block;              /* stack vertically instead of side-by-side */
+                margin-top: 1.5rem;
+              }
+
+              .table-card {
+                background: #fff;
+                padding: 1.25rem 1.5rem;
+                border-radius: 10px;
+                box-shadow: 0 0 1em rgba(0,0,0,0.08);
+                text-align: center;
+                border: 1px solid #000;
+                margin-bottom: 2rem;         /* space between stacked tables */
+              }
+
+              .styled-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.92rem;
+                font-family: 'Noto Sans', sans-serif;
+              }
+
+              .styled-table th {
+                background: #f7f7f7;
+                color: #111;
+                padding: 0.6rem;
+                text-align: center;
+                font-weight: 700;
+                border-bottom: 1px solid #ccc;
+              }
+
+              .styled-table td {
+                padding: 0.5rem;
+                text-align: center;
+                border-bottom: 1px solid #e0e0e0;
+              }
+
+              .styled-table tr.highlight {
+                background: #fafafa;
+                font-weight: 600;
+              }
+
+              .caption {
+                font-size: 0.82rem;
+                color: #333;
+                margin-top: 0.6rem;
+                text-align: justify;
+                line-height: 1.3;
+              }
+              </style>
+
+
+
+            <br>
+
+        
 
         </div>
       </div>
@@ -408,11 +799,11 @@
           <i class="fas fa-copy"></i>
         </button>
         <div class="copy-feedback" id="copyFeedback">Copied!</div>
-        <pre><code id="bibtexCode">@article{glue2024,
- title={Don't Run with Scissors: Pruning Collapses VLA Model Performance and Safety but it can be Recovered},
+        <pre><code id="bibtexCode">@article{gluestick2024,
+ title={Don't Run with Scissors: Pruning Breaks VLA Models but They Can Be Recovered},
  author={Authors will be added later},
- journal={To be submitted},
- year={2024}
+ journal={Submitted},
+ year={2025}
 }</code></pre>
       </div>
     </div>
@@ -480,184 +871,6 @@
   </footer>
   <script src="static/js/comparison.js"></script>
 
-  <script>
-    // Video gallery functionality
-    document.addEventListener('DOMContentLoaded', function () {
-      // Video data
-      const videos = [
-        {
-          title: "Task 1: Manipulation",
-          description: "Demonstration of our method on robotic manipulation tasks.",
-          videoUrl: "./resources/cooking.mp4",
-          thumbnailUrl: "./resources/video_thumbnail/cooking.jpg"
-        },
-        {
-          title: "Task 2: Navigation",
-          description: "Demonstration of our method on robotic navigation tasks.",
-          videoUrl: "./resources/bike.mp4",
-          thumbnailUrl: "./resources/video_thumbnail/bike.jpg"
-        },
-      ];
-
-      // DOM elements
-      const mainVideo = document.getElementById('main-video');
-      const mainVideoSource = mainVideo.querySelector('source');
-      const videoTitle = document.getElementById('video-title');
-      const videoDescription = document.getElementById('video-description');
-      const thumbnailsContainer = document.getElementById('thumbnails-container');
-      // const prevBtn = document.getElementById('prev-btn');
-      // const nextBtn = document.getElementById('next-btn');
-
-      let currentVideoIndex = 0;
-
-      // Initialize gallery
-      function initGallery() {
-        // Create thumbnails
-        videos.forEach((video, index) => {
-          const thumbnail = document.createElement('div');
-          thumbnail.className = 'thumbnail';
-          if (index === currentVideoIndex) {
-            thumbnail.classList.add('active');
-          }
-
-          thumbnail.innerHTML = `
-            <img src="${video.thumbnailUrl}" alt="${video.title}">
-            <div class="thumbnail-title">${video.title}</div>
-          `;
-
-          thumbnail.addEventListener('click', () => {
-            switchVideo(index);
-          });
-
-          thumbnailsContainer.appendChild(thumbnail);
-        });
-
-        // Set initial video
-        updateMainVideo();
-      }
-
-      // Switch video
-      function switchVideo(index) {
-        if (index === currentVideoIndex) return;
-
-        // Update active thumbnail
-        document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
-          if (i === currentVideoIndex) {
-            thumb.classList.remove('active');
-          }
-          if (i === index) {
-            thumb.classList.add('active');
-          }
-        });
-
-        currentVideoIndex = index;
-        updateMainVideo();
-      }
-
-      // Update main video
-      function updateMainVideo() {
-        const video = videos[currentVideoIndex];
-
-        // Fade out current video
-        mainVideo.style.opacity = 0;
-
-        setTimeout(() => {
-          mainVideoSource.src = video.videoUrl;
-          mainVideo.load();
-
-          // Fade in new video
-          mainVideo.style.opacity = 1;
-
-          videoTitle.textContent = video.title;
-          videoDescription.textContent = video.description;
-        }, 300);
-      }
-
-      // Navigation
-      // prevBtn.addEventListener('click', () => {
-      //   let newIndex = currentVideoIndex - 1;
-      //   if (newIndex < 0) {
-      //     newIndex = videos.length - 1;
-      //   }
-      //   switchVideo(newIndex);
-      // });
-
-      // nextBtn.addEventListener('click', () => {
-      //   let newIndex = currentVideoIndex + 1;
-      //   if (newIndex >= videos.length) {
-      //     newIndex = 0;
-      //   }
-      //   switchVideo(newIndex);
-      // });
-
-      // Initialize the gallery
-      initGallery();
-    });
-  </script>
-
-  <!-- <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Set initial camera positions for all model viewers
-      const initialModelViewers = [
-        document.getElementById('QualitativeResult'),
-        document.getElementById('modelViewerComparison1'),
-        document.getElementById('modelViewerComparison2'),
-        document.getElementById('modelViewerComparison3')
-      ];
-      
-      // Apply consistent initial camera settings to all model viewers
-      initialModelViewers.forEach(viewer => {
-        if (viewer) {
-          viewer.addEventListener('load', () => {
-            viewer.cameraOrbit = "180deg 70deg auto";
-            if (viewer.resetTurntableRotation) {
-              viewer.resetTurntableRotation(0);
-            }
-            viewer.jumpCameraToGoal();
-          });
-        }
-      });
-      
-      // Handle comparison thumbnails
-      const firstComparisonThumbnail = document.querySelector('#thumbnail-comparison video, #thumbnail-comparison img');
-      if (firstComparisonThumbnail) {
-        firstComparisonThumbnail.classList.add('thumbnail-selected');
-        // If it's a video, play it
-        if (firstComparisonThumbnail.tagName.toLowerCase() === 'video') {
-          firstComparisonThumbnail.play();
-        }
-      }
-      
-      document.querySelectorAll('#thumbnail-comparison img, #thumbnail-comparison video').forEach(el => {
-        el.addEventListener('click', () => {
-          const name = el.getAttribute('name');
-          
-          // Add selection class to clicked element
-          el.classList.add('thumbnail-selected');
-          
-          // Play video if it's a video element
-          if (el.tagName.toLowerCase() === 'video') {
-            el.play();
-          }
-          
-          // Pause all other videos
-          document.querySelectorAll('#thumbnail-comparison video').forEach(video => {
-            if (video !== el) {
-              video.pause();
-              video.currentTime = 0;
-            }
-          });
-        });
-      });
-      
-      // Handle dropdown change for the third comparison model
-      document.getElementById('comparisonBaselineSelection').addEventListener('change', function() {
-        const selectedName = document.querySelector('#thumbnail-comparison .thumbnail-selected').getAttribute('name');
-        const baseline = this.value;
-        document.getElementById('modelViewerComparison3').setAttribute('src', `resources/comparison/${baseline}/${selectedName}.glb`);
-      });
-    });
-  </script> -->
 
 </body>
 
