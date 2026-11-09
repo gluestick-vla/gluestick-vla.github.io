@@ -435,19 +435,22 @@
   var easeOutCubic = function (x) { return x < 0 ? 0 : x > 1 ? 1 : 1 - Math.pow(1 - x, 3); };
   // Fit every full-screen page to the visible window. Laptops with display scaling (125-150%) and
   // browser toolbars leave far less height than the screen size suggests; when a page's content is
-  // taller than the window it is scaled down uniformly (CSS zoom) so it always fits, never cut off.
+  // taller than the window it is scaled down uniformly (a scale transform) so it always fits, never cut off.
   var fitPages = function () {
-    var desktopLayout = window.innerWidth > 720 && window.innerHeight > 560;   // phones use the stacked layout
+    var desktopLayout = window.innerWidth > 720 && !(window.innerHeight <= 560 && window.innerWidth <= 950);   // phones (incl. landscape) use the stacked layout
     var targets = $$('.scene-sticky > .wrap, .real-page > .wrap, .end-page > .end-wrap, .hero .hero-content');
-    targets.forEach(function (w) { w.style.zoom = ''; });
+    targets.forEach(function (w) { w.style.transform = ''; w.style.transformOrigin = ''; w.style.marginBottom = ''; w.removeAttribute('data-fit'); });
     if (!desktopLayout) { return; }
     var vh = window.innerHeight;
-    // Height of the content as laid out, ignoring entrance offsets (transforms) and absolutely placed overlays.
+    // Natural height of the content at zoom 1, from layout boxes only (offsetTop/offsetHeight), so entrance
+    // transforms and absolutely placed overlays never count. Measured once, unzoomed: browsers report
+    // zoomed geometry differently (Safari), so the scale is computed from this single measurement.
     var contentHeight = function (w) {
-      var wr = w.getBoundingClientRect(), z = parseFloat(w.style.zoom) || 1, h = w.scrollHeight * z;
-      w.querySelectorAll('*').forEach(function (e) {
+      var h = w.scrollHeight;
+      $$('*', w).forEach(function (e) {
+        if (e.offsetParent !== w) { return; }
         var cs = getComputedStyle(e); if (cs.position === 'absolute' || cs.position === 'fixed' || cs.display === 'none') { return; }
-        var below = (e.offsetTop + e.offsetHeight) * z; if (e.offsetParent === w && below > h) { h = below; }
+        var below = e.offsetTop + e.offsetHeight; if (below > h) { h = below; }
       });
       return h;
     };
@@ -455,12 +458,15 @@
       var isHero = w.classList.contains('hero-content');
       var hero = isHero ? w.closest('.hero') : null;
       var room = isHero ? (hero.clientHeight - 120) : (vh - 28);                // leave a little air; the hero keeps room for the scroll cue below it
-      var zoom = 1;
-      for (var pass = 0; pass < 3; pass++) {                                      // re-measure after scaling: wrapped text can change height
-        var h = contentHeight(w);
-        if (!(h > room + 1)) { break; }
-        zoom = Math.max(0.6, zoom * room / h);
-        w.style.zoom = zoom.toFixed(3);
+      var h = contentHeight(w);
+      if (h > room) {
+        // Scale with a transform (identical in every engine, including Safari, where CSS zoom mis-sizes
+        // videos) and give back the freed height with a negative margin so centering and pinning hold.
+        var s = Math.max(0.45, room / h);
+        w.style.transformOrigin = '50% 0';
+        w.style.transform = 'scale(' + s.toFixed(3) + ')';
+        w.style.marginBottom = (-(h * (1 - s))).toFixed(1) + 'px';
+        w.setAttribute('data-fit', s.toFixed(3));
       }
     });
   };
