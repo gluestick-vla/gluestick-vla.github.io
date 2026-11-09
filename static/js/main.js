@@ -437,7 +437,8 @@
   // browser toolbars leave far less height than the screen size suggests; when a page's content is
   // taller than the window it is scaled down uniformly (a scale transform) so it always fits, never cut off.
   var fitPages = function () {
-    var desktopLayout = window.innerWidth > 720 && !(window.innerHeight <= 560 && window.innerWidth <= 950);   // phones (incl. landscape) use the stacked layout
+    var phonePinned = window.innerWidth <= 720 && window.innerHeight >= 500 && !reduced;   // phones in portrait pin the scroll pages too
+    var desktopLayout = (window.innerWidth > 720 && !(window.innerHeight <= 560 && window.innerWidth <= 950)) || phonePinned;
     var targets = $$('.scene-sticky > .wrap, .real-page > .wrap, .end-page > .end-wrap, .hero .hero-content');
     targets.forEach(function (w) { w.style.transform = ''; w.style.transformOrigin = ''; w.style.marginBottom = ''; w.removeAttribute('data-fit'); });
     if (!desktopLayout) { return; }
@@ -456,6 +457,7 @@
     };
     targets.forEach(function (w) {
       var isHero = w.classList.contains('hero-content');
+      if (phonePinned && (isHero || w.closest('.real-page, .end-page, .tables-sticky'))) { return; }   // on phones only the pinned pages are fitted
       var hero = isHero ? w.closest('.hero') : null;
       var room = isHero ? (hero.clientHeight - 120) : (vh - 28);                // leave a little air; the hero keeps room for the scroll cue below it
       var h = contentHeight(w);

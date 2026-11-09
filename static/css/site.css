@@ -1072,3 +1072,78 @@ table.mini td.na, table.mini tr.ours td.na { color: var(--muted); font-weight: 4
   .how-stagebox .stage-eq .eq-sep { display: none; }
   .how-stagebox .stage-eq { min-height: 64px; }
 }
+
+/* --------------------------------------------------------------------------
+   Phones in portrait: the scroll-driven pages are pinned again, with compact layouts that fit a
+   phone screen (collapse scrub, Figure 1 drawing, both gluestick flights, the step-by-step how page).
+   Phones in landscape and reduced-motion users keep the simple stacked pages.
+   -------------------------------------------------------------------------- */
+@media (max-width: 720px) and (min-height: 500px) and (prefers-reduced-motion: no-preference) {
+  /* pinning back on */
+  .scene-scroll { height: 300vh; }
+  .scene-scroll.fig-scroll { height: 340vh; }
+  .scene-scroll.demo-scroll { height: 150vh; }
+  .scene-scroll.how-scroll { height: 520vh; }
+  .scene-sticky, .demo-sticky { position: sticky; top: 0; min-height: 100vh; min-height: 100svh; display: flex; align-items: center; }
+  .scene-sticky > .wrap, .demo-sticky > .wrap { padding: 12px 0; }
+  /* the tables page stays a normal page on phones */
+  .scene-scroll.tables-scroll { height: auto; }
+  .scene-sticky.tables-sticky { position: static; min-height: 0; display: block; }
+  .scene-sticky.tables-sticky > .wrap { padding: 40px 0 24px; }
+  .scene-sticky .scene-head h2, .scene-sticky .section-head h2 { font-size: 25px; line-height: 1.15; }
+  .scene-sticky .section-head, .scene-sticky .scene-head { margin-bottom: 12px; }
+
+  /* collapse page */
+  .collapse-grid { grid-template-columns: 1fr; gap: 10px; }
+  .collapse-stage { aspect-ratio: 2 / 1; min-height: 0; }
+  .collapse-chart { gap: 8px; }
+  /* the stages need no "scroll to" hint on phones, and the phase tag stays on one line */
+  .scene-sticky .stage-hint { display: none; }
+  .scene-sticky .stage-phase { white-space: nowrap; font-size: 12px; }
+  .how-stage .stage-phase { padding: 4px 9px; gap: 6px; }
+  .cc-card { padding: 10px 12px 8px; }
+  .cc-band { margin-bottom: 6px; }
+  .cc-band b { font-size: 15px; }
+  .cc-bars { height: 58px; }
+  .cc-bar .v { font-size: 10.5px; margin-bottom: 3px; }
+  .cc-model-cap { margin-bottom: 4px; }
+  .cc-legend { margin-top: 10px; font-size: 14px; }
+  .scene-sticky .lead.collapse-lead { font-size: 14.5px; line-height: 1.45; margin-top: 10px; }
+
+  /* Figure 1 page */
+  .figure-page { padding: 8px 0; }
+  .spot { gap: 8px; }
+  .spot-task { margin-bottom: 4px; }
+  .spot-task .q { font-size: 14px; }
+  .spot-fail { font-size: 15px; margin-top: 6px; }
+  .spot-fail .x { width: 14px; height: 14px; }
+  .spot-intro { margin-top: 12px; }
+  .intro-head { font-size: 18px; }
+  .intro-head img { width: 28px; }
+  .intro-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; width: auto; font-size: 13px; margin-top: 10px; }
+
+  /* video page: keep a slim slot beside each GLUESTICK clip so the gluestick can land in it */
+  .demo-slot { display: flex; }
+  .demo-pair .glue-unit { grid-area: 1 / 2; grid-template-columns: minmax(0, 1fr) 26px; }
+  .glue-unit .demo-media.glue { border-radius: var(--r) 0 0 var(--r); }
+  .demo-slot .slot-icon { width: 18px; }
+  .demo-sticky h2 { font-size: 25px; }
+
+  /* how page: compact rail, small flip number, one statement at a time */
+  .how-stage { height: auto; aspect-ratio: 16 / 10; min-height: 0; }
+  .how-tabs { display: grid; gap: 6px; margin-top: 10px; }
+  .how-tab { font-size: 0; padding-bottom: 6px; }
+  .how-tab::before { content: counter(how-step); counter-increment: how-step; font: 600 12px/1 var(--font); color: inherit; }
+  .how-tabs { counter-reset: how-step; }
+  .how-card { display: grid; grid-template-columns: 52px 1fr; gap: 12px; padding: 10px 12px; margin-top: 10px; }
+  .flip { display: grid; width: 52px; height: 52px; border-radius: 10px; }
+  .flip .n { font-size: 28px; }
+  .how-captions { display: grid; }
+  .how-captions .how-step { opacity: 0; margin: 0; }
+  .how-captions .how-step.active { opacity: 1; }
+  .how-step p::before { content: none; }
+  .how-step p { font-size: 14.5px; line-height: 1.4; }
+  .how-perks { margin-top: 10px; padding: 8px 12px; gap: 4px; }
+  .how-perks li { font-size: 13px; }
+  .how-title .title-gs { width: 1.2em; height: 1.4em; }
+}
