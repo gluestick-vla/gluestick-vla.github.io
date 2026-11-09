@@ -433,6 +433,43 @@
     return p < 0 ? 0 : p > 1 ? 1 : p;
   };
   var easeOutCubic = function (x) { return x < 0 ? 0 : x > 1 ? 1 : 1 - Math.pow(1 - x, 3); };
+  // Fit every full-screen page to the visible window. Laptops with display scaling (125-150%) and
+  // browser toolbars leave far less height than the screen size suggests; when a page's content is
+  // taller than the window it is scaled down uniformly (CSS zoom) so it always fits, never cut off.
+  var fitPages = function () {
+    var desktopLayout = window.innerWidth > 720 && window.innerHeight > 560;   // phones use the stacked layout
+    var targets = $$('.scene-sticky > .wrap, .real-page > .wrap, .end-page > .end-wrap, .hero .hero-content');
+    targets.forEach(function (w) { w.style.zoom = ''; });
+    if (!desktopLayout) { return; }
+    var vh = window.innerHeight;
+    // Height of the content as laid out, ignoring entrance offsets (transforms) and absolutely placed overlays.
+    var contentHeight = function (w) {
+      var wr = w.getBoundingClientRect(), z = parseFloat(w.style.zoom) || 1, h = w.scrollHeight * z;
+      w.querySelectorAll('*').forEach(function (e) {
+        var cs = getComputedStyle(e); if (cs.position === 'absolute' || cs.position === 'fixed' || cs.display === 'none') { return; }
+        var below = (e.offsetTop + e.offsetHeight) * z; if (e.offsetParent === w && below > h) { h = below; }
+      });
+      return h;
+    };
+    targets.forEach(function (w) {
+      var isHero = w.classList.contains('hero-content');
+      var hero = isHero ? w.closest('.hero') : null;
+      var room = isHero ? (hero.clientHeight - 120) : (vh - 28);                // leave a little air; the hero keeps room for the scroll cue below it
+      var zoom = 1;
+      for (var pass = 0; pass < 3; pass++) {                                      // re-measure after scaling: wrapped text can change height
+        var h = contentHeight(w);
+        if (!(h > room + 1)) { break; }
+        zoom = Math.max(0.6, zoom * room / h);
+        w.style.zoom = zoom.toFixed(3);
+      }
+    });
+  };
+  var fitTimer = null;
+  var refit = function () { if (fitTimer) { clearTimeout(fitTimer); } fitTimer = setTimeout(function () { fitTimer = null; fitPages(); window.dispatchEvent(new Event('scroll')); }, 120); };
+  window.addEventListener('resize', refit);
+  window.addEventListener('load', refit);
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(refit); }
+  fitPages();
   // The hero's scroll cue goes away as soon as the reader scrolls (and comes back at the top).
   var cue = $('#scroll-cue');
   if (cue) {

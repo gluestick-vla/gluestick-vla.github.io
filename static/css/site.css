@@ -582,7 +582,7 @@ table.tbl td.txt, table.tbl th.txt { text-align: left; padding-right: 32px; }
 .demo-head h2 { text-align: center; margin-left: auto; margin-right: auto; max-width: none; }
 .demo-sticky .vmedia { border-color: rgba(255, 255, 255, 0.14); }
 /* two rows of 16:9 pairs must fit the viewport under the heading; each GLUESTICK clip has a slot beside it */
-.demo { width: min(100%, calc((100svh - 470px) * 16 / 9 + 48px + 72px)); margin: 0 auto; }
+.demo { width: min(100%, 884px); margin: 0 auto; }   /* fixed width; short windows are handled by the fit-to-window zoom in main.js */
 .demo-cols { display: grid; grid-template-columns: 1fr 1fr 56px; gap: 16px; padding: 0 16px; margin-bottom: 14px; }   /* same columns and inset as the cards */
 .demo-colhead { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 32px; font: 600 16px/1.2 var(--font); color: var(--ink); transition: color 0.4s ease; }
 .demo-colhead .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
