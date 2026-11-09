@@ -1,0 +1,724 @@
+<!-- Sections removed from index.html on 2026-11-09 (abstract, problem, method, results, hardware, analysis, citation, footer).
+     Kept for reference; they are not linked from the site. Their styles remain in static/css/site.css and their
+     behaviour in static/js/main.js is guarded by element checks, so pasting a block back restores it. -->
+
+  <div class="wrap">
+    <div class="block abstract">
+      <h3>Abstract</h3>
+      <p>Vision-Language-Action (VLA) models are a promising paradigm for field robotics, but their deployment is bottlenecked by strict edge SWaP-C constraints. Compression techniques such as quantization, distillation, and pruning are well-established for LLMs and VLMs. Pruning, however, remains particularly underexplored for VLA models. We surprisingly find that pruning VLA models yields drastic performance degradation and increased safety violations. Through spectral analysis, we identify structural properties of VLA weights that help explain this fragility. Based on this insight, we introduce <b>GLUESTICK</b>, a post-pruning recovery method that restores much of the original model’s capability while preserving sparsity benefits. GLUESTICK computes a one-time corrective term by interpolating between the dense and pruned models in weight space. At inference, each pruned layer applies this correction to recover lost performance with minimal overhead. Our approach requires no additional training and is agnostic to the pruning algorithm. Across diverse VLA architectures and domains, GLUESTICK recovers up to 100% of the success rate and restores safety to near-dense levels, while saving up to 5 GB of memory and achieving up to 1.75× speedup.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="problem">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Pruning collapses VLA task success and safety</h2>
+      <p class="lead">Pruning that reduces LLaMA-2-70B’s mean accuracy by only 2.94% takes OpenVLA and NaVILA to 0.0% task success.</p>
+    </div>
+
+    <div class="prose">
+      <p>At 50% 2:4 structured sparsity with Magnitude or Wanda, task success falls from 85.2% (OpenVLA) and 43.0% (NaVILA) to 0.0%; OpenVLA’s unsafe-episode rate rises from 33.4% to 51.6% and NaVILA’s from 23.0% to 100.0%.</p>
+      <p>Pruning nonetheless remains essential: it lets models fit on edge hardware and use sparse-kernel acceleration. OpenVLA 7B fails to load on the Jetson Orin NX entirely; at 50% 2:4 sparsity it fits in the Orin NX’s 16 GB and runs with accelerated inference.</p>
+    </div>
+
+    <div class="block">
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Model</th><th>Method</th><th>Success</th><th>Unsafe</th><th>Fits</th><th>Accel.</th></tr></thead>
+          <tbody>
+            <tr><td>OpenVLA 7B</td><td>Dense</td><td>85.2%</td><td>33.4%</td><td class="no">No</td><td class="no">No</td></tr>
+            <tr><td></td><td>Magnitude</td><td>0.0%</td><td>46.4%</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><td></td><td>Wanda</td><td>0.0%</td><td>51.6%</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><td>NaVILA 8B</td><td>Dense</td><td>43.0%</td><td>23.0%</td><td class="no">No</td><td class="no">No</td></tr>
+            <tr><td></td><td>Magnitude</td><td>0.0%</td><td>100.0%</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+            <tr><td></td><td>Wanda</td><td>0.0%</td><td>46.0%</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+          </tbody>
+          <caption><b>Table 1.</b> Pruning impact on VLAs at 50% 2:4 structured sparsity. Success = task success rate; Unsafe = episodes with a safety violation; Fits = fits on Jetson Orin NX 16 GB; Accel. = accelerated inference. The Orin NX provides only 8 to 16 GB shared between CPU and GPU and 4.8 FP16 TFLOPs, versus 4,500 for a datacenter B200.</caption>
+        </table>
+      </div>
+    </div>
+
+    <div class="block why-grid">
+      <div>
+        <h3>Why pruning breaks VLAs</h3>
+        <div class="prose">
+          <p>In LLM and VLM models, the spectra are more anisotropic, evidenced by a steep initial drop followed by a long tail, which concentrates energy in a few dominant directions. VLA layers show a noticeably flatter decay, indicating energy spread across many directions, so pruning discards useful signal distributed throughout the matrix.</p>
+        </div>
+        <p class="note">Singular values of equal-sized layers in the language backbones of OpenVLA (VLA), LLaMA-2-7B (LLM) and Qwen2-VL-7B-Instruct (VLM); each line is one layer.</p>
+      </div>
+      <figure class="figure">
+        <div class="plate"><img class="zoomable" src="./resources/figures/spectra.png" data-full="./resources/figures/spectra.png" alt="Singular value versus singular component index for many layers of OpenVLA (green), LLaMA-2 (blue) and Qwen2-VL (black). The OpenVLA curves decay more slowly and sit higher across the index range." data-caption="Figure 2. Singular value spectra of weights."></div>
+        <figcaption class="caption"><b>Figure 2.</b> Singular value spectra of weights.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ====================================================================== -->
+<!-- Method                                                                 -->
+<!-- ====================================================================== -->
+<section class="section method" id="method">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Method</h2>
+      <p class="lead">GLUESTICK computes a one-time corrective term by interpolating between the dense and pruned models in weight space. At inference, each pruned layer applies this correction to recover lost performance with minimal overhead.</p>
+    </div>
+
+    <div class="stage3d" id="method-3d" aria-label="Interactive 3D animation of the GLUESTICK pipeline">
+      <div class="stage-title">
+        <span class="stage-phase" id="stage-phase"><span id="stage-phase-text">Offline: pruning</span></span>
+        <span class="stage-hint">Drag to rotate</span>
+      </div>
+      <div class="stage-fallback"><img src="./resources/gluestick_method.png" alt="Overview of GLUESTICK. Top: a VLA model is pruned with a standard algorithm to enforce 2:4 sparsity in linear layers. Middle: offline, the gap between dense and pruned weights is computed and dominant lost directions are extracted via SVD, yielding lightweight corrections. Bottom: at inference, the correction terms are applied alongside the pruned weights."></div>
+    </div>
+
+    <div class="stepper">
+      <ol class="steps" role="tablist" aria-label="Animation steps">
+        <li role="presentation"><button class="step-tab" type="button" role="tab" data-step="0" aria-current="step">Dense layer<i class="fill"></i></button></li>
+        <li role="presentation"><button class="step-tab" type="button" role="tab" data-step="1">2:4 pruning<i class="fill"></i></button></li>
+        <li role="presentation"><button class="step-tab" type="button" role="tab" data-step="2">Gap matrix<i class="fill"></i></button></li>
+        <li role="presentation"><button class="step-tab" type="button" role="tab" data-step="3">Truncated SVD<i class="fill"></i></button></li>
+        <li role="presentation"><button class="step-tab" type="button" role="tab" data-step="4">Inference<i class="fill"></i></button></li>
+      </ol>
+      <div class="stage-ctrl">
+        <button class="iconbtn" id="stage-play" type="button" aria-pressed="true">
+          <svg class="ic-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+          <svg class="ic-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5v14l12-7z"/></svg>
+          <span class="lbl sr-only">Pause</span>
+        </button>
+        <button class="iconbtn" id="stage-replay" type="button" aria-label="Replay animation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg><span class="lbl">Replay</span></button>
+        <button class="textbtn" id="stage-figure-toggle" type="button">Show Figure 3</button>
+      </div>
+    </div>
+
+    <div class="step-caption" data-step="0">
+      <h4>1. Dense linear layer</h4>
+      <p>Each linear layer \(W_\mathrm{dense}\) of the VLA is handled independently; 93–98% of the parameters of OpenVLA, WorldVLA and NaVILA are in linear layers.</p>
+    </div>
+    <div class="step-caption" data-step="1" hidden>
+      <h4>2. Pruning to 2:4 sparsity</h4>
+      <p>Magnitude or Wanda pruning zeroes two of every four weights, the pattern NVIDIA’s Sparse Tensor Cores accelerate. \(W_\mathrm{pruned}\) is left unchanged.</p>
+    </div>
+    <div class="step-caption" data-step="2" hidden>
+      <h4>3. Gap matrix</h4>
+      <p>Offline, \(W_\mathrm{gap} = W_\mathrm{dense} - W_\mathrm{pruned}\) captures the information lost to pruning.</p>
+    </div>
+    <div class="step-caption" data-step="3" hidden>
+      <h4>4. Truncated SVD</h4>
+      <p>The top \(r\) singular components of the gap give two small factors, \(A = U_r\Sigma_r\) and \(B = V_r\), stored next to the pruned weights.</p>
+    </div>
+    <div class="step-caption" data-step="4" hidden>
+      <h4>5. Inference</h4>
+      <p>\(h(x) = W_\mathrm{pruned}\,x + A(B^\top x)\): the sparse matmul is unchanged and the correction costs \(\mathcal{O}((d_\mathrm{in}+d_\mathrm{out})\,r)\).</p>
+    </div>
+
+    <p class="method-note prose">GLUESTICK requires only the original dense model and its pruned counterpart, incurs a one-time offline cost, and is agnostic to the pruning algorithm. The rank <em>r</em> is its single hyperparameter; corrections are stored in Int8.</p>
+
+    <div class="details-group">
+      <details class="details">
+        <summary>Equations and pseudocode<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <p>For each linear layer with dense weights \(W_\mathrm{dense}\in\mathbb{R}^{d_\mathrm{out}\times d_\mathrm{in}}\) and its pruned version \(W_\mathrm{pruned}\) (fixed, preserving the 2:4/4:8 pattern), define the gap matrix and take its truncated SVD, keeping the top \(r\) singular components:</p>
+          <div class="eq">\[ W_\mathrm{gap} = W_\mathrm{dense} - W_\mathrm{pruned}, \qquad W_\mathrm{gap} = U\Sigma V^\top \approx U_r \Sigma_r V_r^\top, \qquad A = U_r\Sigma_r \in \mathbb{R}^{d_\mathrm{out}\times r},\quad B = V_r \in \mathbb{R}^{d_\mathrm{in}\times r}. \]</div>
+          <p>At inference, each pruned layer adds the correction:</p>
+          <div class="eq">\[ h(x) = \underbrace{W_\mathrm{pruned}\,x}_{\text{efficient sparse matmul}} + \underbrace{B^\top x}_{\mathcal{O}(d_\mathrm{in} r)} \;\rightarrow\; \underbrace{A(\,\cdot\,)}_{\mathcal{O}(d_\mathrm{out} r)}. \]</div>
+          <p>The correction adds only \((d_\mathrm{in}+d_\mathrm{out})\,r\) parameters per layer, small compared with \(d_\mathrm{in}d_\mathrm{out}\) when \(r \ll \min\{d_\mathrm{in}, d_\mathrm{out}\}\). \(U_r\Sigma_r V_r^\top\) is the best rank-\(r\) approximation of the gap in Frobenius norm (Eckart–Young). We write GLUESTICK-\(r\) for a given rank; unless stated otherwise, GLUESTICK means GLUESTICK-500. Corrections are stored in Int8.</p>
+
+          <div class="code-tabs">
+            <div class="tabs" role="tablist" data-tabs="code">
+              <button role="tab" type="button" data-tab="offline" aria-selected="true">Offline: compute corrections</button>
+              <button role="tab" type="button" data-tab="online" aria-selected="false">Online: wrap pruned layers</button>
+            </div>
+            <div class="code-panel" data-panel-group="code" data-panel="offline"><pre><code><span class="c"># Compute and store GLUESTICK correction terms for every linear layer</span>
+
+<span class="k">def</span> <span class="f">prime_gluestick</span>(W_dense, W_pruned, r):
+    <span class="c"># W_dense:  layer (l) dense weights  (d_out, d_in)</span>
+    <span class="c"># W_pruned: layer (l) pruned weights (d_out, d_in)</span>
+    <span class="c"># r: target rank</span>
+
+    W_gap = W_dense - W_pruned
+    U, S, Vh = <span class="t">torch</span>.linalg.svd(W_gap)
+
+    U_r = U[:, :r]
+    S_r = S[:r]
+    V_r = Vh[:r, :].T
+    A   = U_r * S_r.unsqueeze(0)
+    B   = V_r
+
+    <span class="k">return</span> {<span class="s">"A"</span>: A, <span class="s">"B"</span>: B}</code></pre></div>
+            <div class="code-panel" data-panel-group="code" data-panel="online"><pre><code><span class="k">class</span> <span class="f">GLUESTICKWrap</span>(<span class="t">nn</span>.Module):
+    <span class="k">def</span> <span class="f">__init__</span>(<span class="t">self</span>, pruned_linear_layer, A, B):
+        super().__init__()
+        <span class="t">self</span>.pruned_linear = pruned_linear_layer
+        <span class="t">self</span>.A = A
+        <span class="t">self</span>.B = B
+
+    <span class="k">def</span> <span class="f">forward</span>(<span class="t">self</span>, x):
+        <span class="c"># Efficient sparse matmul</span>
+        y = <span class="t">F</span>.linear(x, <span class="t">self</span>.pruned_linear.weight,
+                     <span class="t">self</span>.pruned_linear.bias)
+        <span class="c"># Compute GLUESTICK correction</span>
+        correction = <span class="t">self</span>.A @ (<span class="t">self</span>.B.T @ x)
+        <span class="k">return</span> <span class="t">torch</span>.add(y, correction)
+
+<span class="c"># Load pruned model and correction terms, wrap every pruned linear layer</span>
+model = load_pruned_model()
+correction_terms = load_correction_terms()
+model = apply_gluestick(model, correction_terms)</code></pre></div>
+          </div>
+
+          <figure class="figure narrow">
+            <div class="plate"><img class="zoomable" src="./resources/gluestick_method.png" data-full="./resources/gluestick_method.png" alt="Paper Figure 3: overview of GLUESTICK." data-caption="Figure 3. Overview of GLUESTICK."></div>
+            <figcaption class="caption"><b>Figure 3.</b> Overview of GLUESTICK.</figcaption>
+          </figure>
+          <p class="note">The animation uses a 16×16 layer and <em>r</em> = 2 for legibility; real layers are far larger (e.g. 4096 wide) and <em>r</em> is 200–500.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ====================================================================== -->
+<!-- Results                                                                -->
+<!-- ====================================================================== -->
+<section class="section" id="results">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Results</h2>
+      <p class="lead">Across diverse VLA architectures and domains, GLUESTICK recovers up to 100% of the success rate and restores safety to near-dense levels, while saving up to 5 GB of memory and achieving up to 1.75× speedup.</p>
+      <p class="lead quiet">Experiments use OpenVLA, WorldVLA and NaVILA on LIBERO manipulation and VLN-CE-Isaac navigation; latency is measured on NVIDIA Jetson Thor and Orin NX. Main-result baselines are pruned with Wanda at 50% 2:4 sparsity.</p>
+    </div>
+
+
+    <div class="block chart-row">
+      <div class="chart">
+        <h3>Task success on LIBERO (%)</h3>
+        <p class="sub">Averaged across OpenVLA and WorldVLA. Pruning collapses the mean to 3.6%; GLUESTICK reaches 40.4%, over 2× the memory-matched baseline.</p>
+        <div id="chart-libero-success"></div>
+        <p class="foot">Sparse L.B. prunes only the language backbone. % Sparse L.B. prunes a subset of backbone layers to use the same memory as GLUESTICK. Paper Table 2.</p>
+      </div>
+      <div class="chart">
+        <h3>Task success on VLN-CE-Isaac (%)</h3>
+        <p class="sub">NaVILA on 100 scenes. GLUESTICK-500 recovers 100% of the lost performance, matching the dense model.</p>
+        <div id="chart-nav-success"></div>
+        <p class="foot">Paper Table 4.</p>
+      </div>
+    </div>
+
+    <div class="block details-group">
+      <details class="details">
+        <summary>Safety: change in unsafe-episode rate<span class="ref">Tables 2 and 3</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <div class="chart">
+            <h3>Change in unsafe-episode rate relative to Full Dense (pp) ↓</h3>
+            <p class="sub">LIBERO, averaged across OpenVLA and WorldVLA. GLUESTICK stays near parity with the dense policy: 89% fewer unsafe episodes than Full Sparse on average.</p>
+            <div id="chart-libero-safety"></div>
+          </div>
+          <div class="two">
+            <div class="tbl-wrap"><table class="tbl">
+              <thead><tr><th>Success (%)</th><th>Spatial</th><th>Object</th><th>Goal</th><th>Long</th><th>Mean</th></tr></thead>
+              <tbody>
+                <tr><td>Full Sparse</td><td>0.0</td><td>13.4</td><td>0.8</td><td>0.0</td><td>3.6</td></tr>
+                <tr><td>Sparse L.B.</td><td>17.3</td><td>25.8</td><td>20.5</td><td>6.2</td><td>17.5</td></tr>
+                <tr><td>% Sparse L.B.</td><td>15.2</td><td>25.2</td><td>21.2</td><td>5.7</td><td>16.8</td></tr>
+                <tr class="ours"><td>GLUESTICK</td><td>54.0</td><td>48.2</td><td>46.1</td><td>13.3</td><td>40.4</td></tr>
+              </tbody>
+              <caption><b>Table 2.</b> Task success rate (%), averaged across OpenVLA and WorldVLA. % Sparse L.B. uses the same VRAM as GLUESTICK.</caption>
+            </table></div>
+            <div class="tbl-wrap"><table class="tbl">
+              <thead><tr><th>ΔUnsafe (pp)</th><th>Spatial</th><th>Object</th><th>Goal</th><th>Long</th><th>Mean</th></tr></thead>
+              <tbody>
+                <tr><td>Full Sparse</td><td>+18.2</td><td>+23.0</td><td>+1.4</td><td>+11.6</td><td>+13.6</td></tr>
+                <tr><td>Sparse L.B.</td><td>+9.0</td><td>+13.2</td><td>+1.8</td><td>+9.4</td><td>+8.4</td></tr>
+                <tr><td>% Sparse L.B.</td><td>+5.6</td><td>+14.4</td><td>+4.6</td><td>+5.2</td><td>+7.5</td></tr>
+                <tr class="ours"><td>GLUESTICK</td><td>+0.2</td><td>+1.2</td><td>+0.0</td><td>+4.6</td><td>+1.5</td></tr>
+              </tbody>
+              <caption><b>Table 3.</b> Change in unsafe-episode rate (%) relative to Full Dense. Lower is better.</caption>
+            </table></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>Navigation in detail<span class="ref">Tables 4 and 5</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <div class="chart-row three">
+            <div class="chart"><h3>ΔUnsafe (pp) ↓</h3><p class="sub">Full Sparse adds 23 points of unsafe episodes; GLUESTICK-500 ends 4 points below dense.</p><div id="chart-nav-unsafe"></div></div>
+            <div class="chart"><h3>Path length (m) ↓</h3><p class="sub">Pruned agents veer into entirely different rooms: mean path length rises by over 50%.</p><div id="chart-nav-pl"></div></div>
+            <div class="chart"><h3>Final distance to goal (m) ↓</h3><p class="sub">Full Sparse ends over 60% farther from the goal; GLUESTICK matches the dense 5.9 m.</p><div id="chart-nav-dg"></div></div>
+          </div>
+          <div class="tbl-wrap"><table class="tbl">
+            <thead><tr><th>Method</th><th>Success ↑</th><th>ΔUnsafe ↓</th><th>PL (m) ↓</th><th>DG (m) ↓</th><th>ΔVRAM (GB) ↓</th></tr></thead>
+            <tbody>
+              <tr><td>Full Dense</td><td>43.0</td><td>+0.0</td><td>11.7</td><td>5.9</td><td>+0.00</td></tr>
+              <tr><td>Full Sparse</td><td>0.0</td><td>+23.0</td><td>17.6</td><td>9.5</td><td>−5.74</td></tr>
+              <tr><td>Sparse Language Backbone</td><td>23.0</td><td>+2.0</td><td>14.8</td><td>8.5</td><td>−5.68</td></tr>
+              <tr><td>% Sparse Language Backbone</td><td>25.0</td><td>+12.0</td><td>14.9</td><td>8.4</td><td>−4.59</td></tr>
+              <tr><td>GLUESTICK-200</td><td>41.0</td><td>−1.0</td><td>12.5</td><td>6.5</td><td>−5.36</td></tr>
+              <tr class="ours"><td>GLUESTICK-500</td><td>44.0</td><td>−4.0</td><td>11.9</td><td>5.9</td><td>−4.60</td></tr>
+            </tbody>
+            <caption><b>Tables 4 and 5.</b> Navigation results, NaVILA on VLN-CE-Isaac. ΔUnsafe and ΔVRAM are relative to Full Dense; lower is better. PL = path length, DG = final distance to goal.</caption>
+          </table></div>
+          <figure class="figure narrow">
+            <div class="plate"><img class="zoomable" src="./resources/figures/nav_distributions.png" alt="Kernel density plots of path length and final distance to goal for Full Dense, Full Sparse, Sparse Language Backbone, 81.3% Sparse Language Backbone and GLUESTICK rank 500. GLUESTICK closely matches the Full Dense distribution." data-caption="Navigation trajectory quality: distributions of path length (left) and final distance to goal (right)."></div>
+            <figcaption class="caption">Distribution of path lengths (left) and final distances to goal (right). Full Dense trajectories remain short and goal-directed, Full Sparse trajectories are substantially longer and terminate farther from the goal, and GLUESTICK-500 closely matches the Full Dense distribution.</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>Edge latency<span class="ref">Table 6</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <div class="chart">
+            <h3>End-to-end inference latency (ms) ↓</h3>
+            <p class="sub">Mean ± std over 100 timed iterations, bfloat16, cuSPARSELt 2:4 kernels. OpenVLA: one full 7-DoF action (prefill + 7 decoded tokens). WorldVLA: a 25-action chunk.</p>
+            <div id="chart-latency"></div>
+            <p class="foot">On the Orin NX the dense OpenVLA cannot run at all: it exceeds the device’s memory. GLUESTICK-200 deploys with only 245 ms of overhead relative to the sparse baseline. Without GLUESTICK, the choice on the Orin NX is between a model that cannot load and a sparse model with severely degraded performance.</p>
+          </div>
+          <div class="tbl-wrap"><table class="tbl">
+            <thead><tr><th>Model</th><th>Device</th><th>Method</th><th>Latency ↓</th><th>Speedup ↑</th></tr></thead>
+            <tbody>
+              <tr><td>OpenVLA</td><td>NVIDIA Thor</td><td>Full Dense</td><td>796.50 ± 25.85 ms</td><td class="na">—</td></tr>
+              <tr><td></td><td></td><td>Full Sparse</td><td>434.47 ± 3.63 ms</td><td>1.83×</td></tr>
+              <tr><td></td><td></td><td>Sparse Language Backbone</td><td>439.45 ± 13.37 ms</td><td>1.81×</td></tr>
+              <tr class="ours"><td></td><td></td><td>GLUESTICK-200</td><td>453.58 ± 31.29 ms</td><td>1.75×</td></tr>
+              <tr class="ours"><td></td><td></td><td>GLUESTICK-500</td><td>537.49 ± 28.19 ms</td><td>1.48×</td></tr>
+              <tr><td>WorldVLA</td><td>NVIDIA Thor</td><td>Full Dense</td><td>2816.57 ± 65.73 ms</td><td class="na">—</td></tr>
+              <tr><td></td><td></td><td>Sparse Language Backbone</td><td>1488.44 ± 57.27 ms</td><td>1.89×</td></tr>
+              <tr class="ours"><td></td><td></td><td>GLUESTICK-200</td><td>1691.05 ± 69.35 ms</td><td>1.67×</td></tr>
+              <tr class="ours"><td></td><td></td><td>GLUESTICK-500</td><td>1860.56 ± 48.23 ms</td><td>1.51×</td></tr>
+              <tr><td>OpenVLA</td><td>NVIDIA Orin NX</td><td>Full Dense</td><td>Out of Memory</td><td class="na">—</td></tr>
+              <tr><td></td><td></td><td>Sparse Language Backbone</td><td>1546.37 ± 57.32 ms</td><td>Deploys†</td></tr>
+              <tr class="ours"><td></td><td></td><td>GLUESTICK-200</td><td>1790.99 ± 42.15 ms</td><td>Deploys†</td></tr>
+              <tr class="ours"><td></td><td></td><td>GLUESTICK-500</td><td>2085.96 ± 58.50 ms</td><td>Deploys†</td></tr>
+            </tbody>
+            <caption><b>Table 6.</b> Edge inference latency. Pruning accelerates inference; GLUESTICK retains the speedup with minimal overhead. † Since dense exceeds device memory, speedup is not compared, but inference is still accelerated; sparsity enables deployment.</caption>
+          </table></div>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary><span>Memory and the rank <em>r</em></span><span class="ref">Figure 4</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <div class="chart">
+            <h3>The rank <em>r</em> is a dial between memory and recovery</h3>
+            <p class="sub">OpenVLA on LIBERO Spatial, correction applied to a Full Sparse model. Six ranks from paper Figure 4 (right).</p>
+            <div class="rank-panel">
+              <div class="rank-readout">
+                <div class="big" id="rank-big"><span class="num">57.4</span><small>%</small></div>
+                <div class="rank-what">Task success, OpenVLA on LIBERO Spatial</div>
+                <div class="cfg" id="rank-cfg"></div>
+                <div class="rank-slider">
+                  <label class="sr-only" for="rank-slider">Correction rank</label>
+                  <input class="rank" id="rank-slider" type="range" min="0" max="5" step="1" value="5" aria-valuetext="GLUESTICK-500">
+                  <div class="rank-ticks"><span>Full Sparse</span><span>r = 1</span><span>r = 25</span><span>r = 100</span><span>r = 200</span><span>r = 500</span></div>
+                </div>
+              </div>
+              <div id="chart-rank"></div>
+            </div>
+            <p class="foot">Values as printed in paper Figure 4 (right): Full Sparse 0.0%, GLUESTICK-1 0.6%, -25 7.4%, -100 18.6%, -200 30.8%, -500 57.4%. Selecting singular components uniformly at random instead of by magnitude recovers only about 10% of the success achieved by magnitude-based selection.</p>
+          </div>
+          <div class="chart">
+            <h3>VRAM saved relative to Full Dense (GB) ↑</h3>
+            <p class="sub">NaVILA. GLUESTICK-200 saves 5.36 GB, within 0.38 GB of the fully sparse model, while recovering nearly the full dense success rate (41.0% vs 43.0%). The fully sparse model saves the maximum 5.74 GB but reaches 0% success.</p>
+            <div id="chart-vram"></div>
+            <p class="foot">Values from paper Figure 4 (left) and the appendix navigation table; corrections stored in Int8.</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>Composability and generality<span class="ref">Tables 7–10</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <div class="chart-row">
+            <div class="chart">
+              <h3>Composes with Int8 quantization</h3>
+              <p class="sub">OpenVLA, LIBERO Spatial. Quantization has minimal impact on the success rate of both dense and sparse models, but pruning degradation remains severe after quantization. GLUESTICK recovers performance to 62.2% on top of quantization.</p>
+              <div id="chart-int8"></div>
+              <div class="tbl-wrap"><table class="tbl">
+                <thead><tr><th>Method</th><th>Dense</th><th>Dense/Int8</th><th>Sparse</th><th>Sparse/Int8</th><th>Sparse/Int8/GLUESTICK</th></tr></thead>
+                <tbody><tr><td>Success rate (%)</td><td>85.2</td><td>84.8</td><td>31.2</td><td>31.8</td><td><b>62.2</b></td></tr></tbody>
+                <caption><b>Table 7.</b></caption>
+              </table></div>
+            </div>
+            <div class="chart">
+              <h3>Works across sparsity levels</h3>
+              <p class="sub">Wanda-pruned OpenVLA language backbone (unstructured sparsity), LIBERO Spatial, GLUESTICK-500.</p>
+              <div id="chart-sparsity"></div>
+              <div class="tbl-wrap"><table class="tbl">
+                <thead><tr><th>Method</th><th>0%</th><th>30%</th><th>50%</th><th>70%</th></tr></thead>
+                <tbody>
+                  <tr><td>Wanda</td><td>85.2</td><td>80.8</td><td>31.8</td><td>1.2</td></tr>
+                  <tr class="ours"><td>Wanda + GLUESTICK</td><td class="na">—</td><td>85.8</td><td>60.2</td><td>24.6</td></tr>
+                </tbody>
+                <caption><b>Table 8.</b></caption>
+              </table></div>
+            </div>
+          </div>
+          <div class="chart-row">
+            <div class="chart">
+              <h3>Generalizes to pruned VLMs</h3>
+              <p class="sub">Qwen2-VL-7B-Instruct pruned with Wanda, 1,000 DocVQA examples (ANLS). At 70% sparsity GLUESTICK-500 lifts ANLS from 21.30 to 90.89.</p>
+              <div id="chart-docvqa"></div>
+              <div class="tbl-wrap"><table class="tbl">
+                <thead><tr><th>Method</th><th>0%</th><th>30%</th><th>50%</th><th>70%</th></tr></thead>
+                <tbody>
+                  <tr><td>Wanda</td><td>93.88</td><td>93.38</td><td>88.16</td><td>21.30</td></tr>
+                  <tr class="ours"><td>Wanda + GLUESTICK</td><td class="na">—</td><td class="na">—</td><td>92.95</td><td>90.89</td></tr>
+                </tbody>
+                <caption><b>Table 9.</b></caption>
+              </table></div>
+            </div>
+            <div class="chart">
+              <h3>Agnostic to pruning algorithm and sparsity pattern</h3>
+              <p class="sub">Magnitude-pruned OpenVLA language backbone, LIBERO Spatial. Success improves from 11.0% to 48.8% under 2:4 and from 25.4% to 61.8% under 4:8.</p>
+              <div id="chart-agnostic"></div>
+              <div class="tbl-wrap"><table class="tbl">
+                <thead><tr><th>Method</th><th>2:4</th><th>4:8</th></tr></thead>
+                <tbody>
+                  <tr><td>Magnitude</td><td>11.0</td><td>25.4</td></tr>
+                  <tr class="ours"><td>Magnitude + GLUESTICK</td><td>48.8</td><td>61.8</td></tr>
+                </tbody>
+                <caption><b>Table 10.</b></caption>
+              </table></div>
+            </div>
+          </div>
+          <p><b>Combines with VLA token pruning.</b> Combined with VLA-Pruner on NVIDIA Thor, GLUESTICK’s 1.48× speedup rises to 1.64× with an additional 0.12 GB of VRAM savings; VLA-Pruner itself costs a 7% decrease in success due to token removal. Token pruning reduces input tokens while GLUESTICK operates on pruned weights, so the two are complementary.</p>
+          <p><b>Long-horizon tasks.</b> On OpenVLA-OFT, a stronger VLA, GLUESTICK improves LIBERO Long success from 61.2% to 84.4%. VLN-CE-Isaac averages 1,828.2 steps per episode, 4.7× longer than LIBERO Long’s 391.1, yet GLUESTICK fully recovers success there.</p>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>Per-suite LIBERO tables<span class="ref">Appendix</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <p>Success rate and inference VRAM for each LIBERO suite. Δ columns are relative to each model’s Full Dense on that suite. Corrections stored in Int8.</p>
+          <div>
+            <h4>LIBERO Spatial</h4>
+            <div class="tbl-wrap"><table class="tbl">
+              <thead><tr><th>Model</th><th>Method</th><th>Success (%)</th><th>VRAM (GB)</th><th>ΔSuccess</th><th>ΔVRAM</th></tr></thead>
+              <tbody>
+                <tr><td>OpenVLA</td><td>Full Dense</td><td>85.2</td><td>16.12</td><td>+0.0</td><td>+0.00</td></tr>
+                <tr><td></td><td>Full Sparse</td><td>0.0</td><td>10.17</td><td>−85.2</td><td>−5.95</td></tr>
+                <tr><td></td><td>Sparse Language Backbone</td><td>31.2</td><td>10.56</td><td>−54.0</td><td>−5.56</td></tr>
+                <tr><td></td><td>75% Sparse Language Backbone</td><td>25.4</td><td>11.96</td><td>−59.8</td><td>−4.16</td></tr>
+                <tr><td></td><td>GLUESTICK-200</td><td>49.0</td><td>11.18</td><td>−36.2</td><td>−4.94</td></tr>
+                <tr class="ours"><td></td><td>GLUESTICK-500</td><td>60.2</td><td>11.97</td><td>−25.0</td><td>−4.15</td></tr>
+                <tr><td>WorldVLA</td><td>Full Dense</td><td>88.4</td><td>16.24</td><td>+0.0</td><td>+0.00</td></tr>
+                <tr><td></td><td>Sparse Language Backbone</td><td>3.4</td><td>10.16</td><td>−85.0</td><td>−6.08</td></tr>
+                <tr><td></td><td>75% Sparse Language Backbone</td><td>5.0</td><td>12.16</td><td>−83.4</td><td>−4.08</td></tr>
+                <tr class="ours"><td></td><td>GLUESTICK-500</td><td>47.8</td><td>12.14</td><td>−40.6</td><td>−4.10</td></tr>
+              </tbody>
+            </table></div>
+          </div>
+          <div>
+            <h4>LIBERO Object</h4>
+            <div class="tbl-wrap"><table class="tbl">
+              <thead><tr><th>Model</th><th>Method</th><th>Success (%)</th><th>VRAM (GB)</th><th>ΔSuccess</th><th>ΔVRAM</th></tr></thead>
+              <tbody>
+                <tr><td>OpenVLA</td><td>Full Dense</td><td>85.8</td><td>16.12</td><td>+0.0</td><td>+0.00</td></tr>
+                <tr><td></td><td>Full Sparse</td><td>13.4</td><td>10.17</td><td>−72.4</td><td>−5.95</td></tr>
+                <tr><td></td><td>Sparse Language Backbone</td><td>50.8</td><td>10.56</td><td>−35.0</td><td>−5.56</td></tr>
+                <tr><td></td><td>75% Sparse Language Backbone</td><td>49.0</td><td>11.96</td><td>−36.8</td><td>−4.16</td></tr>
+                <tr><td></td><td>GLUESTICK-200</td><td>66.7</td><td>11.18</td><td>−19.1</td><td>−4.94</td></tr>
+                <tr class="ours"><td></td><td>GLUESTICK-500</td><td>71.2</td><td>11.97</td><td>−14.6</td><td>−4.15</td></tr>
+                <tr><td>WorldVLA</td><td>Full Dense</td><td>80.4</td><td>16.24</td><td>+0.0</td><td>+0.00</td></tr>
+                <tr><td></td><td>Sparse Language Backbone</td><td>0.8</td><td>10.16</td><td>−79.6</td><td>−6.08</td></tr>
+                <tr><td></td><td>75% Sparse Language Backbone</td><td>1.4</td><td>12.16</td><td>−79.0</td><td>−4.08</td></tr>
+                <tr class="ours"><td></td><td>GLUESTICK-500</td><td>25.2</td><td>12.14</td><td>−55.2</td><td>−4.10</td></tr>
+              </tbody>
+            </table></div>
+          </div>
+          <div>
+            <h4>LIBERO Goal</h4>
+            <div class="tbl-wrap"><table class="tbl">
+              <thead><tr><th>Model</th><th>Method</th><th>Success (%)</th><th>VRAM (GB)</th><th>ΔSuccess</th><th>ΔVRAM</th></tr></thead>
+              <tbody>
+                <tr><td>OpenVLA</td><td>Full Dense</td><td>77.0</td><td>16.12</td><td>+0.0</td><td>+0.00</td></tr>
+                <tr><td></td><td>Full Sparse</td><td>0.8</td><td>10.17</td><td>−76.2</td><td>−5.95</td></tr>
+                <tr><td></td><td>Sparse Language Backbone</td><td>20.0</td><td>10.56</td><td>−57.0</td><td>−5.56</td></tr>
+                <tr><td></td><td>75% Sparse Language Backbone</td><td>20.8</td><td>11.96</td><td>−56.2</td><td>−4.16</td></tr>
+                <tr><td></td><td>GLUESTICK-200</td><td>30.4</td><td>11.18</td><td>−46.6</td><td>−4.94</td></tr>
+                <tr class="ours"><td></td><td>GLUESTICK-500</td><td>47.0</td><td>11.97</td><td>−30.0</td><td>−4.15</td></tr>
+                <tr><td>WorldVLA</td><td>Full Dense</td><td>81.0</td><td>16.24</td><td>+0.0</td><td>+0.00</td></tr>
+                <tr><td></td><td>Sparse Language Backbone</td><td>21.0</td><td>10.16</td><td>−60.0</td><td>−6.08</td></tr>
+                <tr><td></td><td>75% Sparse Language Backbone</td><td>21.6</td><td>12.16</td><td>−59.4</td><td>−4.08</td></tr>
+                <tr class="ours"><td></td><td>GLUESTICK-500</td><td>45.2</td><td>12.14</td><td>−35.8</td><td>−4.10</td></tr>
+              </tbody>
+            </table></div>
+          </div>
+          <div>
+            <h4>LIBERO Long</h4>
+            <div class="tbl-wrap"><table class="tbl">
+              <thead><tr><th>Model</th><th>Method</th><th>Success (%)</th><th>VRAM (GB)</th><th>ΔSuccess</th><th>ΔVRAM</th></tr></thead>
+              <tbody>
+                <tr><td>OpenVLA</td><td>Full Dense</td><td>55.8</td><td>16.12</td><td>+0.0</td><td>+0.00</td></tr>
+                <tr><td></td><td>Full Sparse</td><td>0.0</td><td>10.17</td><td>−55.8</td><td>−5.95</td></tr>
+                <tr><td></td><td>Sparse Language Backbone</td><td>12.4</td><td>10.56</td><td>−43.4</td><td>−5.56</td></tr>
+                <tr><td></td><td>75% Sparse Language Backbone</td><td>11.4</td><td>11.96</td><td>−44.4</td><td>−4.16</td></tr>
+                <tr><td></td><td>GLUESTICK-200</td><td>16.2</td><td>11.18</td><td>−39.6</td><td>−4.94</td></tr>
+                <tr class="ours"><td></td><td>GLUESTICK-500</td><td>26.6</td><td>11.97</td><td>−29.2</td><td>−4.15</td></tr>
+                <tr><td>WorldVLA</td><td>Full Dense</td><td>55.2</td><td>16.24</td><td>+0.0</td><td>+0.00</td></tr>
+                <tr><td></td><td>Sparse Language Backbone</td><td>0.0</td><td>10.16</td><td>−55.2</td><td>−6.08</td></tr>
+                <tr><td></td><td>75% Sparse Language Backbone</td><td>0.0</td><td>12.16</td><td>−55.2</td><td>−4.08</td></tr>
+                <tr class="ours"><td></td><td>GLUESTICK-500</td><td>0.0</td><td>12.14</td><td>−55.2</td><td>−4.10</td></tr>
+              </tbody>
+              <caption>WorldVLA completely collapsed after pruning on LIBERO Long, producing invalid action tokens. Although task success did not improve, GLUESTICK restored the model to producing more valid outputs. On the stronger OpenVLA-OFT, GLUESTICK improves LIBERO Long success from 61.2% to 84.4%.</caption>
+            </table></div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ====================================================================== -->
+<!-- Real-world experiments                                                 -->
+<!-- ====================================================================== -->
+<section class="section" id="hardware">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Real-world experiments</h2>
+    </div>
+
+    <div class="block flow">
+      <div>
+        <h3>Manipulation on a Unitree G1 humanoid</h3>
+        <p class="task">Task: pick up an apple and place it in a bin.</p>
+        <div class="reel-pair">
+          <figure class="vframe">
+            <figcaption class="vlabel pruned">Pruned</figcaption>
+            <div class="vmedia" id="g1-video-pruned" data-src="./resources/g1_pruned.mp4">
+              <!-- Drop the real clip here: <video autoplay muted loop playsinline preload="metadata"><source src="./resources/g1_pruned.mp4" type="video/mp4"></video> -->
+              <img src="./resources/figures/g1_poster_pruned.jpg" alt="Pruned GR00T N1.7 on the G1: the arm collides with the robot's own body and the task fails.">
+            </div>
+          </figure>
+          <figure class="vframe">
+            <figcaption class="vlabel glue">With GLUESTICK</figcaption>
+            <div class="vmedia" id="g1-video-glue" data-src="./resources/g1_gluestick.mp4">
+              <!-- Drop the real clip here: <video autoplay muted loop playsinline preload="metadata"><source src="./resources/g1_gluestick.mp4" type="video/mp4"></video> -->
+              <img src="./resources/figures/g1_poster_gluestick.jpg" alt="GLUESTICK-recovered GR00T N1.7 on the G1: the humanoid lifts the apple toward the bin.">
+            </div>
+          </figure>
+        </div>
+        <p class="caption quiet">Video to follow; stills from paper Figure 5.</p>
+      </div>
+      <div class="prose">
+        <p>Pruning causes the model to fail completely, reducing success from 90% to 0% and producing unsafe behavior in 90% of episodes. GLUESTICK fully restores safety and reaches 60% success.</p>
+        <h4>Setup</h4>
+        <p>GR00T N1.7 deployed on the G1, fine-tuned to pick up an apple and place it in a bin. Both the vision and language backbones are pruned with Magnitude pruning at 50% 2:4 sparsity; GLUESTICK-1000 is applied to all pruned layers; 10 trials per model. In nearly every episode, the pruned model exhibited self-collisions, collisions with the table, containment breaches in which the end effector moved beyond the table’s edges, or a combination of these, and the arms twisting into contorted, unnatural poses.</p>
+      </div>
+      <figure class="figure">
+        <div class="plate strip"><img class="zoomable" src="./resources/figures/g1_strip.jpg" data-full="./resources/figures/g1_together.png" alt="Two rows of four frames: with GLUESTICK the G1 reaches for the apple and lifts it toward the bin; with the pruned model the arm collides with the robot's body (circled, labelled Collision) and the task fails." data-caption="Figure 5. Real-world manipulation on Unitree G1. Top: GLUESTICK. Bottom: pruned."></div>
+        <figcaption class="caption"><b>Figure 5.</b> Real-world manipulation on Unitree G1. Top: GLUESTICK. Bottom: pruned.</figcaption>
+      </figure>
+      <div class="tbl-wrap narrow"><table class="tbl">
+        <thead><tr><th>Model</th><th>Success</th><th>Unsafe episodes</th></tr></thead>
+        <tbody>
+          <tr><td>Dense</td><td>90%</td><td>0%</td></tr>
+          <tr class="ours"><td>GLUESTICK-1000</td><td>60%</td><td>0%</td></tr>
+          <tr><td>Pruned</td><td>0%</td><td>90%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="block flow">
+      <div>
+        <h3>Navigation on a Boston Dynamics Spot</h3>
+        <p class="task">Task: “Enter the kitchen from the office and walk to the sofa on the left side of the kitchen.”</p>
+      </div>
+      <figure class="figure">
+        <div class="plate strip"><img class="zoomable" src="./resources/figures/spot_strip_photos.png" data-full="./resources/figures/spot_together_photos.png" alt="Four photographs of a yellow Spot quadruped walking from an office through a doorway, along a kitchen corridor and toward a sofa." data-caption="Figure 7. Real-world navigation on Boston Dynamics Spot in a real office environment."></div>
+        <figcaption class="caption"><b>Figure 7.</b> Real-world navigation on Boston Dynamics Spot in a real office environment.</figcaption>
+      </figure>
+      <div class="prose">
+        <p>Recorded observations from a real office are replayed through each model. GLUESTICK reduces the pruned model’s trajectory deviation from the dense model by 50%.</p>
+        <h4>Setup</h4>
+        <p>NaVILA pruned with Wanda at 50% 2:4 sparsity. Trajectory deviation is the cumulative L1 difference in linear and angular velocity commands relative to the Full Dense model. Values as printed in the paper’s figure:</p>
+      </div>
+      <div class="tbl-wrap narrow"><table class="tbl">
+        <thead><tr><th>Model</th><th>Trajectory deviation ↓</th></tr></thead>
+        <tbody>
+          <tr><td>Dense</td><td>0.00</td></tr>
+          <tr class="ours"><td>GLUESTICK</td><td>+5.12</td></tr>
+          <tr><td>Pruned</td><td>+10.26</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================================================================== -->
+<!-- Additional analyses                                                    -->
+<!-- ====================================================================== -->
+<section class="section" id="analysis">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Additional analyses</h2>
+    </div>
+
+    <div class="details-group">
+      <details class="details">
+        <summary>Spectral change under fine-tuning<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <div class="two">
+            <div class="prose">
+              <p>OpenVLA’s backbone is a fine-tuned LLaMA-2, so the spectra compare the same layers before and after VLA fine-tuning. Measured as AUC/<em>k</em> (higher = slower decay), fine-tuning shifts the language backbone from 1.32 to 1.55 and the vision encoders from 0.84 to 0.92.</p>
+              <p>Ranking layers by their AUC/<em>k</em> change, pruning the top, middle and bottom 50 layers hurts success most, moderately and least, respectively. On LIBERO Object, GLUESTICK recovers 16.7% for the top-50 layers but only 3.3% for the bottom 50, suggesting layers with larger spectral change benefit more from correction.</p>
+            </div>
+            <figure class="figure">
+              <div class="plate"><img class="zoomable" src="./resources/figures/auc_pruning_bars.png" alt="Grouped bars of success rate on LIBERO Spatial, Object and Goal when pruning the top, middle or bottom 50 layers by spectral change; success rises from top to bottom." data-caption="Correlation of layer-wise spectra with pruning sensitivity."></div>
+              <figcaption class="caption">Correlation of layer-wise spectra with pruning sensitivity.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>VLA component sensitivity<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <div class="two">
+            <div class="prose">
+              <p>Pruning only the language or only the vision backbone while keeping the rest dense: for OpenVLA (7.5B parameters; 89.4% language, 9.7% vision, 0.9% projector) language pruning costs −54.0% on LIBERO Spatial and vision pruning −27.8%, but per million parameters vision pruning is 4.75× more damaging. For NaVILA (8.5B; 94.5% / 5.0% / 0.4%) the drops are −20.0% and −40.0%, 37.5× more damaging per parameter for vision.</p>
+              <p>Vision backbones are disproportionately sensitive while offering little memory benefit, so the main evaluations focus on pruning the language backbone.</p>
+            </div>
+            <figure class="figure">
+              <div class="plate"><img class="zoomable" src="./resources/figures/component_sensitivity.png" alt="Bar chart of success drop per million parameters: language versus vision pruning for OpenVLA (0.0080 vs 0.0380, 4.8×) and NaVILA (0.0025 vs 0.0934, 37×)." data-caption="Component sensitivity: success-rate drop per million parameters when pruning only the language or vision backbone."></div>
+              <figcaption class="caption">Component sensitivity: success-rate drop per million parameters when pruning only the language or vision backbone.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>Weight-only decomposition without pruning<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <p>Replacing OpenVLA weights with a low-rank SVD approximation (no pruning) achieves 0% success on LIBERO Spatial at nearly every rank. The pruned weight matrix retains structure that low-rank approximation alone cannot capture; GLUESTICK keeps the pruned weights (and their sparsity benefits) and uses SVD only to reintroduce lost directions.</p>
+          <div class="tbl-wrap" style="max-width:640px;"><table class="tbl">
+            <thead><tr><th>SVD rank (no pruning)</th><th>200</th><th>400</th><th>500</th><th>800</th><th>1000</th><th>2000</th><th>2500</th></tr></thead>
+            <tbody><tr><td>Success rate (%)</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0.4</td><td>21.0</td></tr></tbody>
+          </table></div>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>Calibration set selection<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <div class="two">
+            <div class="prose">
+              <p>Wanda’s baseline pruning of OpenVLA’s language backbone used 15K states from the LIBERO fine-tuning corpus. A smaller, targeted set of 3.5K states within a 5% window around the first gripper-closing event improved the pruned backbone’s LIBERO Spatial success from 31.2% to 33.4%, a gain of about 2% from a calibration set less than a quarter of the size.</p>
+            </div>
+            <figure class="figure">
+              <div class="plate"><img class="zoomable" src="./resources/figures/calib_set.png" alt="LIBERO Spatial calibration trajectories in 3D: full trajectories on the left and a 5% window around the first gripper-closing event on the right, with red segments marking closed-gripper states." data-caption="Calibration set visualization."></div>
+              <figcaption class="caption">Calibration set visualization.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>Singular value selection and an activation-aware variant<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <p>All reported results use the top-<em>r</em> singular components by magnitude. Choosing singular values uniformly at random (GLUESTICK-200 on a fully sparse language backbone) recovers only about 10% of the task success of magnitude-based selection.</p>
+          <p>An activation-aware variant scales the gap by Wanda’s calibration activation norms before the SVD. The recovered subspace changes (cosine similarity 0.86 at rank 500, 0.78 at rank 200), but it performs slightly worse on LIBERO Spatial: 59.0% vs 60.2% at rank 500 and 47.6% vs 49.0% at rank 200, with nearly identical offline cost (2.375 vs 2.366 s per layer) and unchanged inference cost.</p>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>FLOP analysis and parameter distribution<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <div class="two">
+            <div>
+              <p>Sparse models reduce compute substantially, and GLUESTICK introduces only a modest FLOP increase relative to the sparse baseline (single inference pass, OpenVLA with Wanda-pruned language backbone):</p>
+              <div class="tbl-wrap tbl-block"><table class="tbl">
+                <thead><tr><th>Method</th><th>Total FLOPs (T)</th></tr></thead>
+                <tbody>
+                  <tr><td>Full Dense</td><td>29.32</td></tr>
+                  <tr><td>50% 2:4 pruned OpenVLA</td><td>16.54</td></tr>
+                  <tr class="ours"><td>+ GLUESTICK-200</td><td>18.51</td></tr>
+                  <tr class="ours"><td>+ GLUESTICK-500</td><td>21.47</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div>
+              <p>GLUESTICK targets linear layers because they hold the vast majority of VLA parameters:</p>
+              <div class="tbl-wrap tbl-block"><table class="tbl">
+                <thead><tr><th>Model</th><th>Total</th><th>Linear</th><th>Conv.</th></tr></thead>
+                <tbody>
+                  <tr><td>OpenVLA</td><td>7,541,237,184</td><td>7,407,513,280 (98.23%)</td><td>1,281,664 (0.02%)</td></tr>
+                  <tr><td>WorldVLA</td><td>7,042,582,528</td><td>6,744,440,832 (95.77%)</td><td>27,310,848 (0.39%)</td></tr>
+                  <tr><td>NaVILA</td><td>8,494,180,416</td><td>7,962,922,816 (93.75%)</td><td>678,528 (0.01%)</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>Manipulation vs. navigation tolerance<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <p>Manipulation needs centimeter-level control, so tiny trajectory deviations can cause complete failure, whereas navigation tolerates multi-meter deviations. The average path-length difference between successful and failed episodes is 0.018 m in manipulation versus 3.292 m in navigation.</p>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>GLUESTICK and LoRA<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <p>Both add a low-rank term to a layer’s output, but LoRA’s matrices are <em>learned</em> by gradient-based training on a dataset for efficient fine-tuning, while GLUESTICK’s are computed analytically, with no training at all, from the exact gap between the dense and pruned weights for post-pruning recovery. The source of the injected information and the problem being solved are entirely different.</p>
+        </div>
+      </details>
+
+      <details class="details">
+        <summary>Safety metrics and limitations<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="details-body">
+          <p><b>Navigation safety:</b> a collision is recorded whenever the agent’s actions cause unintended contact with objects. <b>Manipulation safety:</b> five metrics covering joint-limit violations (within 0.1% of limits), arm collisions, unsafe object velocities (above 1.0 m/s), end-effector containment (more than 5% outside the workspace region) and whole-body containment (more than 1% outside). An episode is unsafe if it violates any metric.</p>
+          <p><b>Limitations.</b> The single hyperparameter introduces an inherent trade-off between success, memory and latency, and a uniform rank is applied across all layers. Future work includes reducing this trade-off and exploring adaptive rank selection across layers.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ====================================================================== -->
+<!-- Citation                                                               -->
+<!-- ====================================================================== -->
+<section class="section" id="citation">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Citation</h2>
+    </div>
+    <div class="bib">
+      <div class="bib-head">
+        <span>BibTeX</span>
+        <button class="btn small" id="bib-copy" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span class="lbl">Copy</span>
+        </button>
+      </div>
+<pre id="bibtex">@misc{jabbour2026dontrunscissorspruning,
+      title={Don't Run with Scissors: Pruning Breaks VLA Models but They Can Be Recovered},
+      author={Jason Jabbour and Dong-Ki Kim and Max Smith and Jay Patrikar and Radhika Ghosal and Youhui Wang and Ali Agha and Vijay Janapa Reddi and Shayegan Omidshafiei},
+      year={2026},
+      eprint={2510.08464},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2510.08464},
+}</pre>
+    </div>
+  </div>
+</section>
+
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <nav class="foot-links" aria-label="Paper links">
+        <a href="https://arxiv.org/abs/2510.08464" target="_blank" rel="noopener">arXiv</a>
+        <a href="https://arxiv.org/pdf/2510.08464" target="_blank" rel="noopener">PDF</a>
+        <a href="#citation">BibTeX</a>
+      </nav>
+    </div>
+  </div>
+</footer>

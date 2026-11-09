@@ -1,892 +1,359 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="description"
-        content="Vision-Language-Action (VLA) models have advanced robotic capabilities
-            but remain challenging to deploy on resource-limited hardware. Pruning
-            has enabled efficient compression of large language models (LLMs), yet it
-            is largely understudied in robotics. Surprisingly, we observe that pruning
-            VLA models leads to drastic degradation and increased safety violations.
-            We introduce GLUESTICK, a post-pruning recovery method that restores much of
-             the original model's functionality while retaining sparsity benefits" />
-  <meta name="keywords" content="GLUESTICK,Vision-Language-Action,VLA,Pruning,Robotics,Safety,Memory Efficiency">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="image" content="https://gluestick-vla.github.io/resources/teaser.jpg">
-  <title>Don't Run with Scissors: Pruning Breaks VLA Models but They Can Be Recovered</title>
-
-  <meta property="og:title"
-    content="Don't Run with Scissors: Pruning Breaks VLA Models but They Can Be Recovered" />
-  <meta property="og:description"
-    content="Vision-Language-Action (VLA) models have advanced robotic capabilities
-            but remain challenging to deploy on resource-limited hardware. Pruning
-            has enabled efficient compression of large language models (LLMs), yet it
-            is largely understudied in robotics. Surprisingly, we observe that pruning
-            VLA models leads to drastic degradation and increased safety violations.
-            We introduce GLUESTICK, a post-pruning recovery method that restores much of
-             the original model's functionality while retaining sparsity benefits" />
-  <!-- Twitter automatically scrapes this. Go to https://cards-dev.twitter.com/validator?
-      if you update and want to force Twitter to re-scrape. -->
-  <meta property="twitter:card" content="summary" />
-  <meta property="twitter:title"
-    content="Don't Run with Scissors: Pruning Breaks VLA Models but They Can Be Recovered" />
-  <meta property="twitter:description"
-    content="Vision-Language-Action (VLA) models have advanced robotic capabilities
-            but remain challenging to deploy on resource-limited hardware. Pruning
-            has enabled efficient compression of large language models (LLMs), yet it
-            is largely understudied in robotics. Surprisingly, we observe that pruning
-            VLA models leads to drastic degradation and increased safety violations.
-            We introduce GLUESTICK, a post-pruning recovery method that restores much of
-             the original model's functionality while retaining sparsity benefits" />
-    <!-- <meta property="twitter:image"         content="https://3dmagicpony.github.io/resources/overview.jpg" /> -->
-
-  <!-- MathJax library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
-
-  <script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-      tex2jax: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']]},
-      TeX: {
-        Macros: {
-          method: "\\mathrm{GLUESTICK}"   // defines \method → GLUESTICK in math mode
-        }
-      }
-    });
-  </script>
-
-
-  <!-- Google Analytics removed for template -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
-
-  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
-
-  <link rel="stylesheet" href="./static/css/bulma.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
-  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
-  <link rel="stylesheet" href="./static/css/copy_button.css">
-  <link rel="stylesheet" href="./static/css/gallery.css">
-  <link rel="stylesheet" href="./static/css/index.css">
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script defer src="./static/js/fontawesome.all.min.js"></script>
-  <script src="./static/js/bulma-carousel.min.js"></script>
-  <script src="./static/js/bulma-slider.min.js"></script>
-
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0E0E10">
+  <title>GLUESTICK</title>
+  <meta name="description" content="Pruning Vision-Language-Action (VLA) models causes drastic performance degradation and more safety violations. GLUESTICK is a training-free, pruning-agnostic post-pruning recovery method that restores up to 100% of the success rate while saving up to 5 GB of memory and achieving up to 1.75× speedup. CoRL 2026.">
+  <meta name="keywords" content="GLUESTICK, Vision-Language-Action, VLA, pruning, robotics, safety, edge deployment, OpenVLA, NaVILA, WorldVLA, CoRL 2026">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Don't Run with Scissors: Pruning Breaks VLA Models but They Can Be Recovered">
+  <meta property="og:description" content="GLUESTICK: a training-free, pruning-agnostic recovery method for pruned Vision-Language-Action models. Recovers up to 100% of success rate, restores safety, saves up to 5 GB of memory and runs up to 1.75× faster on edge hardware.">
+  <meta property="og:url" content="https://gluestick-vla.github.io/">
+  <meta property="og:image" content="https://gluestick-vla.github.io/resources/gluestick_spotlight.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Don't Run with Scissors: Pruning Breaks VLA Models but They Can Be Recovered">
+  <meta name="twitter:description" content="GLUESTICK: training-free recovery of pruned VLA models. CoRL 2026.">
+  <meta name="twitter:image" content="https://gluestick-vla.github.io/resources/gluestick_spotlight.png">
   <link rel="icon" type="image/png" href="./resources/orange_gluestick_square.png">
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./static/css/site.css?v=2">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], ignoreHtmlClass: 'no-mathjax' }
+    };
+  </script>
+  <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
 </head>
-
 <body>
 
-  <section class="hero">
-    <div class="hero-body">
-      <div class="container is-max-desktop">
-        <div class="columns is-centered">
-          <div class="column has-text-centered">
-            <h1 class="title is-4 publication-title" style="font-size: 2rem;"> Don't Run with Scissors <img src="./resources/purple_scissors.png" alt="Scissors Emoji" style="width: 1em; vertical-align: middle;"> : Pruning Breaks<br>VLA Models but They Can Be Recovered </h1>
-            
-            <!-- Authors will be added later -->
+<!-- ====================================================================== -->
+<!-- Navigation                                                             -->
+<!-- ====================================================================== -->
 
-            <!-- <h1 style="font-size:24px;font-weight:bold">CVPR 2025 Best Paper Award Candidate</h1> -->
 
-            <!-- <h1 style="font-size:24px;font-weight:bold">CVPR 2024 Best Paper Award</h1> -->
+<!-- ====================================================================== -->
+<!-- Hero                                                                   -->
+<!-- ====================================================================== -->
+<section class="hero" id="top">
+  <div class="hero-canvas" id="hero-3d" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="hero-content">
+      <h1><b>Don’t Run with <span class="nowrap">Scissors<img class="scissors" src="./resources/purple_scissors.png" alt="" width="64" height="64">:</span></b> <span class="nowrap-lg">Pruning Breaks VLA Models</span> <br class="br-lg">but They Can Be Recovered</h1>
 
-            <div class="column has-text-centered">
-              <div class="publication-links">
+      <p class="authors-line" aria-label="Authors">
+        <span class="author"><a href="https://scholar.google.com/citations?user=vuiMp1gAAAAJ" target="_blank" rel="noopener">Jason Jabbour</a><sup>1,2</sup></span>,
+        <span class="author"><a href="https://scholar.google.com/citations?user=Yl_3akYAAAAJ" target="_blank" rel="noopener">Dong-Ki Kim</a><sup>1</sup></span>,
+        <span class="author"><a href="https://scholar.google.com/citations?user=gc1jnZ4AAAAJ" target="_blank" rel="noopener">Max Smith</a><sup>1</sup></span>,
+        <span class="author"><a href="https://scholar.google.com/citations?user=T16259QAAAAJ" target="_blank" rel="noopener">Jay Patrikar</a><sup>1</sup></span>,
+        <span class="author"><a href="https://scholar.google.com/citations?user=XLPt690AAAAJ" target="_blank" rel="noopener">Radhika Ghosal</a><sup>2</sup></span>,<br class="br-lg">
+        <span class="author"><a href="https://scholar.google.com/citations?user=AtHsy-EAAAAJ" target="_blank" rel="noopener">Youhui Wang</a><sup>2</sup></span>,
+        <span class="author"><a href="https://scholar.google.com/citations?user=36qnUD4AAAAJ" target="_blank" rel="noopener">Ali Agha</a><sup>1</sup></span>,
+        <span class="author"><a href="https://scholar.google.com/citations?user=gy4UVGcAAAAJ" target="_blank" rel="noopener">Vijay Janapa Reddi</a><sup>2</sup></span>,
+        <span class="author"><a href="https://scholar.google.com/citations?user=nm5wMNUAAAAJ" target="_blank" rel="noopener">Shayegan Omidshafiei</a><sup>1</sup></span>
+      </p>
 
-                <!-- PDF Link. -->
-                <span class="link-block">
-                  <a href="#" class="external-link button is-normal is-rounded is-dark" onclick="return false;">
-                    <span class="icon">
-                      <i class="fas fa-file-pdf"></i>
-                    </span>
-                    <span>Paper (Coming Soon)</span>
-                  </a>
-                </span>
-                 
-                <!-- ArXiv Link.
-                <span class="link-block">
-                  <a href="#" class="external-link button is-normal is-rounded is-dark" onclick="return false;">
-                    <span class="icon">
-                      <i class="ai ai-arxiv"></i>
-                    </span>
-                    <span>ArXiv (Coming Soon)</span>
-                  </a>
-                </span>
-                 -->
-                <!-- Code Link.
-                <span class="link-block">
-                  <a href="#" class="external-link button is-normal is-rounded is-dark" onclick="return false;">
-                    <span class="icon">
-                      <i class="fab fa-github"></i>
-                    </span>
-                    <span>Code (Coming Soon)</span>
-                  </a>
-                </span>
-                 -->
-              </div>
+      <div class="affil-logos" aria-label="Affiliations">
+        <a class="affil" href="https://fieldai.com/" target="_blank" rel="noopener"><sup>1</sup><img src="./resources/logos/fieldai-reverse.svg" alt="FieldAI"></a>
+        <a class="affil" href="https://www.harvard.edu/" target="_blank" rel="noopener"><sup>2</sup><img src="./resources/logos/harvard-reverse.svg" alt="Harvard University"></a>
+      </div>
 
+      <p class="hero-kicker">Conference on Robot Learning (CoRL) 2026</p>
+
+      <div class="actions">
+        <a class="btn primary" href="https://arxiv.org/abs/2510.08464" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          arXiv
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-cue" id="scroll-cue" aria-hidden="true"><span class="mouse"><i></i></span><span class="lbl">Scroll</span></div>
+</section>
+
+<main>
+
+<!-- ====================================================================== -->
+<!-- Overview: Figure 1 and abstract                                        -->
+<!-- ====================================================================== -->
+<!-- ====================================================================== -->
+<!-- Pruning collapse: dense weights and Table 1, then pruned                -->
+<!-- ====================================================================== -->
+<section class="scene-section" id="collapse-page">
+  <div class="scene-scroll" id="collapse-scroll"><div class="scene-sticky collapse-sticky"><div class="wrap">
+    <div class="section-head scene-head">
+      <h2>Pruning severely degrades VLA task success and safety.</h2>
+    </div>
+    <div class="collapse-grid">
+      <div class="stage3d collapse-stage" id="collapse-3d" aria-label="A dense weight matrix being pruned to 2:4 sparsity">
+        <div class="stage-title"><span class="stage-phase" id="collapse-phase">Dense weights</span><span class="stage-hint">Scroll to prune</span></div>
+      </div>
+      <div class="collapse-chart" id="collapse-chart" aria-label="Task success and unsafe-episode rate for dense, Magnitude-pruned and Wanda-pruned OpenVLA and NaVILA"></div>
+    </div>
+    <div class="cc-legend" id="collapse-legend" aria-label="Legend"></div>
+    <p class="lead collapse-lead">Representative VLAs such as OpenVLA and NaVILA, when pruned with Magnitude or Wanda, drop in task success rate to 0% (from 85.2% and 43.0%, respectively). Pruning also increases unsafe behavior: OpenVLA’s unsafe-episode rate rises from 33.4% to 51.6%, and NaVILA’s from 23.0% to 100.0%.</p>
+  </div></div></div>
+</section>
+
+<section class="section overview" id="overview">
+  <div class="scene-scroll fig-scroll" id="fig-scroll"><div class="scene-sticky fig-sticky"><div class="wrap figure-page">
+    <div class="section-head figure-head">
+      <h2>What that degradation means for a robot.</h2>
+    </div>
+
+    <div class="spot" data-spotlight>
+      <figure class="spot-panel">
+        <div class="spot-task"><span class="k">Instruction</span><span class="q">“Enter the dining room and walk to the other end.”</span></div>
+        <div class="spot-media" data-spot-panel="nav"><img src="./resources/figures/spotlight_nav.jpg" alt="A Unitree Go2 quadruped walking through a dining room. The pruned VLA’s purple path turns into a table and ends at an X; the orange GLUESTICK path continues to the far end of the room."></div>
+        <figcaption class="spot-fail"><svg class="x" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="#7B4FD1" stroke-width="4.5" stroke-linecap="round"/></svg><span>Colliding with an object.</span></figcaption>
+      </figure>
+      <figure class="spot-panel">
+        <div class="spot-task"><span class="k">Instruction</span><span class="q">“Put the bowl on top of the cabinet.”</span></div>
+        <div class="spot-media" data-spot-panel="manip"><img src="./resources/figures/spotlight_manip.jpg" alt="A robot arm holding a bowl above a cabinet. The pruned VLA’s purple path drops the bowl to the floor and ends at an X; the orange GLUESTICK path places it on the cabinet."></div>
+        <figcaption class="spot-fail"><svg class="x" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="#7B4FD1" stroke-width="4.5" stroke-linecap="round"/></svg><span>Dropping a bowl.</span></figcaption>
+      </figure>
+    </div>
+
+    <div class="spot-intro">
+      <p class="intro-head"><img src="./resources/orange_gluestick.png" alt="" aria-hidden="true"><span>We propose <b>GLUESTICK</b>.</span></p>
+      <ul class="intro-facts">
+        <li>Post-pruning</li>
+        <li>Training-free</li>
+        <li>Pruning-algorithm agnostic</li>
+        <li>Largely retains memory and speed benefits</li>
+      </ul>
+    </div>
+  </div></div></div>
+
+  <div class="demo-scroll scene-scroll" id="demo-scroll"><div class="demo-sticky scene-sticky"><div class="scene-rail" id="demo-rail" aria-hidden="true"><i></i></div><div class="wrap">
+    <div class="section-head demo-head">
+      <h2>Take a look.</h2>
+    </div>
+
+    <div class="demo" id="demo" data-state="pruned">
+      <div class="demo-cols">
+        <div class="demo-colhead pruned"><i class="dot" aria-hidden="true"></i><span>Pruned</span></div>
+        <div class="demo-colhead glue" aria-live="polite"><i class="dot" aria-hidden="true"></i><span>With GLUESTICK</span></div>
+      </div>
+      <div class="demo-rows" id="demo-grid">
+        <figure class="demo-card demo-row">
+          <div class="spot-task"><span class="k">Instruction</span><span class="q">“Enter the dining room and walk to the other end.”</span></div>
+          <div class="demo-pair">
+            <div class="vmedia demo-media pruned"><video disablepictureinpicture disableremoteplayback class="v-pruned" id="vid-nav-pruned" data-start="6" autoplay muted playsinline preload="metadata"><source src="./resources/navigation_pruned.mp4" type="video/mp4"></video><i class="vprog" aria-hidden="true"><b></b></i></div>
+            <div class="glue-unit">
+              <div class="vmedia demo-media glue"><video disablepictureinpicture disableremoteplayback class="v-glue" id="vid-nav-glue" data-start="17" data-end="43" muted playsinline preload="metadata"><source src="./resources/navigation_gluestick.mp4" type="video/mp4"></video><i class="vprog" aria-hidden="true"><b></b></i></div>
+              <div class="demo-slot" id="demo-slot" aria-hidden="true"><img class="slot-icon" src="./resources/orange_gluestick.png" alt=""></div>
             </div>
+            <p class="demo-outcome fail"><svg class="x" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="#7B4FD1" stroke-width="4.5" stroke-linecap="round"/></svg><span>Colliding with an object.</span></p>
+            <p class="demo-outcome ok"><svg class="ok" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" stroke="#F35937" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Reaches the other end safely.</span></p>
+          </div>
+        </figure>
+        <figure class="demo-card demo-row">
+          <div class="spot-task"><span class="k">Instruction</span><span class="q">“Put the bowl on top of the cabinet.”</span></div>
+          <div class="demo-pair">
+            <div class="vmedia demo-media pruned"><video disablepictureinpicture disableremoteplayback class="v-pruned" autoplay muted playsinline preload="metadata"><source src="./resources/manipulation_pruned.mp4" type="video/mp4"></video><i class="vprog" aria-hidden="true"><b></b></i></div>
+            <div class="glue-unit">
+              <div class="vmedia demo-media glue"><video disablepictureinpicture disableremoteplayback class="v-glue" muted playsinline preload="metadata"><source src="./resources/manipulation_gluestick.mp4" type="video/mp4"></video><i class="vprog" aria-hidden="true"><b></b></i></div>
+              <div class="demo-slot" aria-hidden="true"><img class="slot-icon" src="./resources/orange_gluestick.png" alt=""></div>
+            </div>
+            <p class="demo-outcome fail"><svg class="x" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="#7B4FD1" stroke-width="4.5" stroke-linecap="round"/></svg><span>Dropping a bowl.</span></p>
+            <p class="demo-outcome ok"><svg class="ok" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" stroke="#F35937" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Places the bowl on the cabinet.</span></p>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </div></div></div>
+  <img class="gs-floater" id="gs-floater" src="./resources/orange_gluestick.png" alt="" aria-hidden="true">
+
+  <div class="scene-scroll how-scroll" id="how-scroll"><div class="scene-sticky how-sticky"><div class="wrap">
+    <div class="section-head scene-head how-head">
+      <h2 class="how-title">How GLUESTICK works. <span class="title-gs"><img class="title-icon" src="./resources/orange_gluestick.png" alt="" aria-hidden="true"></span></h2>
+    </div>
+    <div class="how-body">
+      <div class="how-stagebox">
+      <div class="stage3d how-stage" id="how-3d" aria-label="3D animation of the GLUESTICK pipeline: a dense linear layer is pruned to 2:4 sparsity, the gap between dense and pruned weights is computed, reduced to two small factors by a truncated SVD, and added back around the pruned layer at inference">
+        <div class="stage-title"><span class="stage-phase" id="how-phase"><b>Offline</b><span>pruning</span></span><span class="stage-hint">Scroll to step through</span></div>
+      </div>
+      <div class="stage-eq" id="how-eq" aria-hidden="true">
+        <span class="eq active">\(W_\mathrm{dense} \in \mathbb{R}^{d_\mathrm{out} \times d_\mathrm{in}}\)</span>
+        <span class="eq">\(W_\mathrm{pruned} = \mathrm{prune}(W_\mathrm{dense})\), 2:4 sparsity</span>
+        <span class="eq">\(W_\mathrm{gap} = W_\mathrm{dense} - W_\mathrm{pruned}\)</span>
+        <span class="eq">\(W_\mathrm{gap} \approx U_r \Sigma_r V_r^\top, \quad A = U_r \Sigma_r, \quad B = V_r\)</span>
+        <span class="eq">\(h(x) = W_\mathrm{pruned}\,x + A(B^\top x)\)</span>
+      </div>
+      </div>
+      <ol class="how-tabs" id="how-tabs" aria-hidden="true">
+        <li class="how-tab"><span>Dense Layer</span><i class="fill" aria-hidden="true"><b></b></i></li>
+        <li class="how-tab"><span>Pruning</span><i class="fill" aria-hidden="true"><b></b></i></li>
+        <li class="how-tab"><span>Gap Matrix</span><i class="fill" aria-hidden="true"><b></b></i></li>
+        <li class="how-tab"><span>Lightweight Corrections</span><i class="fill" aria-hidden="true"><b></b></i></li>
+        <li class="how-tab"><span>Inference-Time Correction</span><i class="fill" aria-hidden="true"><b></b></i></li>
+      </ol>
+      <div class="how-card" id="how-card">
+        <div class="flip" id="how-flip" data-tone="purple" aria-hidden="true"><span class="n">1</span></div>
+        <div class="how-captions" id="how-captions">
+          <div class="how-step">
+            <p data-num="1">GLUESTICK starts from the dense VLA model and iterates through its linear layers.</p>
+          </div>
+          <div class="how-step">
+            <p data-num="2">Each layer is pruned with any algorithm, ratio and pattern; we recommend 2:4 structured sparsity for hardware acceleration.</p>
+          </div>
+          <div class="how-step">
+            <p data-num="3">The gap between the dense and pruned weights captures the information lost to pruning.</p>
+          </div>
+          <div class="how-step">
+            <p data-num="4">A truncated SVD of the gap keeps its top <i>r</i> components as two lightweight matrices, <i>A</i> and <i>B</i>.</p>
+          </div>
+          <div class="how-step">
+            <p data-num="5">At inference, each layer keeps its sparse weights unchanged and adds a lightweight low-rank correction, restoring the lost signal at minimal cost.</p>
           </div>
         </div>
       </div>
     </div>
-  </section>
-
-
-  <style>
-    .video-border {
-      display: inline-block;
-      padding: 2px;
-      /* adjust thickness of your 'border' */
-      border-radius: 4px;
-      background: linear-gradient(45deg, #ff9a9e, #fad0c4);
-      /* try different gradient colors */
-    }
-
-    .video-border video {
-      display: block;
-      border: none;
-      border-radius: 4px;
-      /* match the wrapper for a consistent look */
-    }
-  </style>
-
-  <style>
-    #teaser-video {
-      max-width: 60%;
-      margin: 0 auto;
-      display: block;
-      border: none;
-      /* remove the solid border */
-      border-radius: 4px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    }
-
-    #architecture-img {
-      width: 90%;
-      margin: 0 auto;
-      display: block;
-      border: none;
-      border-radius: 0;
-      /* removed border radius */
-      box-shadow: none;
-      /* removed box shadow */
-    }
-
-    /* Enhanced style to further reduce space between buttons and teaser video */
-    .hero.teaser {
-      padding-top: 0;
-      margin-top: -3rem;
-      /* Added negative margin to pull the teaser section up */
-    }
-
-    .hero.teaser .hero-body {
-      padding-top: 0;
-      /* Reduced from 1rem to 0 */
-    }
-
-    /* Reduce space between hero section (links) and TLDR section */
-    .hero {
-      margin-bottom: -3rem;
-      /* Pull the next section up */
-    }
-  </style>
-
-  <section class="section" style="padding-top: 0rem; margin-top: -1rem;">
-    <div class="container is-max-desktop">
-
-      <div class="columns is-centered">
-        <div class="column is-full-width has-text-centered">
-          <!-- <div class="content has-text-justified">
-            <p>
-              <b>TLDR:</b> We observe that pruning severely harms VLA models, and introduce GLUESTICK a recovery algorithm that restores task success and safety.
-            </p>
-          </div> -->
-
-          <div class="content has-text-centered">
-            <!-- ==================================== -->
-            <!-- ============== Teaser Image  ============= -->
-            <!-- ==================================== -->
-            <img id="teaser-collage" src="./resources/gluestick_spotlight.png" alt="Teaser Collage"
-              style="width: 90%; margin-bottom: 0.5rem;">
-            <p style="margin-bottom: 1.5rem;">
-              VLAs break under pruning, and <b>GLUESTICK</b> fixes them. Pruning
-              methods unexpectedly cause task and safety failures in VLAs: colliding with an object in
-              a navigation task <b>(left)</b>, or dropping a bowl in a manipulation task <b>(right)</b>. Our post
-              pruning method, GLUESTICK, restores the lost functionality of the original model.
-            </p>
-
-          
-            <!-- ==================================== -->
-            <!-- ============== Abstract  ============= -->
-            <!-- ==================================== -->
-            <h2 class="title is-4" style="font-weight: 700;">Abstract</h2>
-            <div class="content has-text-justified">
-              <p>
-              Vision-Language-Action (VLA) models have advanced robotic capabilities
-              but remain challenging to deploy on resource-limited hardware. Pruning
-              has enabled efficient compression of large language models (LLMs), yet it
-              is largely understudied in robotics. Surprisingly, we observe that pruning
-              VLA models leads to drastic degradation and increased safety violations.
-              We introduce <b>GLUESTICK</b>, a post-pruning recovery method that restores 
-              much of the original model's functionality while retaining sparsity
-              benefits. Our method performs a one-time interpolation between the dense
-              and pruned models in weight-space to compute a corrective term. This
-              correction is used during inference by each pruned layer to recover lost
-              capabilities with minimal overhead. GLUESTICK requires no additional
-              training, is agnostic to the pruning algorithm, and introduces a single hyperparameter 
-              that controls the tradeoff between efficiency and accuracy.
-              Across diverse VLA architectures and tasks in manipulation and navigation, 
-              GLUESTICK achieves competitive memory efficiency while substantially 
-              recovering success rates and reducing safety violations.
-              </p>
-            </div>
-
-
-            </div>
-
-            <!-- ==================================== -->
-            <!-- ============== Method  ============= -->
-            <!-- ==================================== -->
-            <img id="teaser-collage" src="./resources/gluestick_method.png" alt="GLUESTICK Method"
-              style="width: 80%; margin-bottom: 0.5rem;">
-            <p style="margin-bottom: 1.5rem;">
-              <b>Overview of GLUESTICK. (Top)</b> A VLA model is pruned with a standard 
-              algorithm (e.g., Wanda) to enforce 2:4 sparsity in linear layers. <b>(Middle)</b> Offline, we
-              compute the gap between the dense and pruned weights and extract dominant lost directions
-              via SVD, yielding lightweight corrections. <b>(Bottom)</b> At inference time, these correction
-              terms are applied alongside the pruned weights, effectively adding back lost signal.
-            </p>
-            <br>
-
-            <h2 class="title is-4" style="font-weight: 700;">Method</h2>
-
-
-            <div class="content has-text-justified">
-              <p>
-                We propose <strong>\(\method\)</strong>, a post-hoc, training-free recovery method that operates entirely in weight space 
-                and is agnostic to the pruning algorithm (see Figure&nbsp;1).
-                \(\method\) requires only the original dense model and its pruned counterpart, and incurs a one-time offline cost; 
-                no additional training is required.
-              </p>
-
-              <p>
-                Specifically, for each linear layer with dense weight matrix 
-                \(
-                  W_\mathrm{dense}\in\mathbb{R}^{d_\mathrm{out}\times d_\mathrm{in}}
-                \)
-                and its pruned version \(W_{\text{pruned}}\) (fixed, preserving the original 2:4/4:8 pattern),
-                we define the <em>gap matrix</em>:
-              </p>
-
-              \[
-                W_\mathrm{gap} = W_\mathrm{dense} - W_\mathrm{pruned}
-              \]
-
-              <p>
-                which captures lost information due to pruning. We then compute a truncated singular value decomposition (SVD)
-                of the gap matrix:
-              </p>
-
-              \[
-                W_\mathrm{gap} = U \Sigma V^\top \approx U_r\Sigma_r V_r^\top
-              \]
-
-              <p>
-                keeping the top \(r\) singular components. This is the <em>best rank-\(r\)</em> approximation to \(W_\mathrm{gap}\) 
-                in Frobenius norm.
-                For memory and speed, we fold the singular values into one term so that only two compact matrices need to be stored:
-              </p>
-
-              \[
-                A = U_r \Sigma_r \in \mathbb{R}^{d_\mathrm{out}\times r}, \quad 
-                B = V_r \in \mathbb{R}^{d_\mathrm{in} \times r}
-              \]
-
-              <p>
-                During inference, \(\method\) adds a lightweight correction around each pruned layer:
-              </p>
-
-              \[
-                h(x) = W_\mathrm{pruned} x + A(B^\top x)
-              \]
-
-              <p>
-                which re-injects the dominant lost directions at low cost while leaving \(W_\mathrm{pruned}\) unchanged, 
-                thereby preserving the efficiency gains of structured sparsity with a minimal overhead addition from the correction term.
-                The extra compute from this correction is:
-              </p>
-
-              \[
-                \underbrace{W_\mathrm{pruned} x}_{\text{efficient sparse matmul}}
-                +
-                \underbrace{B^{\top} x}_{\mathcal{O}(d_{\mathrm{in}}\,r)}
-                +
-                \underbrace{A(\,\cdot\,)}_{\mathcal{O}(d_{\mathrm{out}}\,r)},
-              \]
-
-              <p>
-                or \(\mathcal{O}((d_\mathrm{in}+d_\mathrm{out})r)\) on top of the sparse matrix multiplication, 
-                versus \(\mathcal{O}(d_\mathrm{in}d_\mathrm{out})\) for the dense layer.
-                Our correction adds only \((d_\mathrm{in}+d_\mathrm{out})r\) extra parameters per layer, which is small compared to 
-                \(d_\mathrm{in}d_\mathrm{out}\) in the dense case. With \(r \ll \min\{d_\mathrm{in}, d_\mathrm{out}\}\),
-                \(\method\) preserves the efficiency gains of structured 50% sparsity.
-              </p>
-            </div>
-
-
-
-            <br>
-
-
-            <!-- ==================================== -->
-            <!-- ====== Video Gallery Section  ====== -->
-            <!-- ==================================== -->
-            <h2 class="title is-4" style="font-weight: 700;">Video Gallery</h2>
-            <div class="content has-text-justified">
-              <p>
-                Comparison of a <strong>GLUESTICK</strong> recovered model and a <strong>Pruned</strong> model on robotic
-                <em>Manipulation</em> and <em>Navigation</em> tasks.
-                Each pair demonstrates success and safety (GLUESTICK) versus failure and unsafe behavior (Pruned).
-              </p>
-            </div>
-
-            <div class="video-gallery">
-
-              <!-- Manipulation Row -->
-              <div class="video-row">
-                <h3 class="task-title">Manipulation</h3>
-                <div class="video-pair">
-                  <!-- UNSAFE (left) -->
-                  <div class="video-card unsafe">
-                    <video autoplay muted loop playsinline>
-                      <source src="./resources/manipulation_pruned.mp4" type="video/mp4">
-                    </video>
-                    <div class="label-below">
-                      <img src="./resources/purple_scissors.png" class="label-icon" alt="Pruned Icon" style="width: 1em; vertical-align: -0.2em;">
-                      <span class="method-name pruned-text">PRUNED</span> — <span class="status unsafe-text">Unsafe & Failed</span>
-                    </div>
-                  </div>
-
-                  <!-- SAFE (right) -->
-                  <div class="video-card safe">
-                    <video autoplay muted loop playsinline>
-                      <source src="./resources/manipulation_gluestick.mp4" type="video/mp4">
-                    </video>
-                    <div class="label-below">
-                      <img src="./resources/orange_gluestick.png" class="label-icon" alt="GLUESTICK Icon" style="width: .8em; vertical-align: -0.2em;">
-                      <span class="method-name gluestick-text">GLUESTICK</span> — <span class="status safe-text">Safe & Successful</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Manipulation instruction -->
-                <div class="task-instruction-gradient">
-                  <strong>Task Instruction:</strong> "Put the Bowl on top of the cabinet"
-                </div>
-              </div>
-
-              <!-- Navigation Row -->
-              <div class="video-row">
-                <h3 class="task-title">Navigation</h3>
-                <div class="video-pair">
-                  <!-- UNSAFE (left) -->
-                  <div class="video-card unsafe">
-                    <video autoplay muted loop playsinline>
-                      <source src="./resources/navigation_pruned.mp4" type="video/mp4">
-                    </video>
-                    <div class="label-below">
-                      <img src="./resources/purple_scissors.png" class="label-icon" alt="Pruned Icon" style="width: 1em; vertical-align: -0.2em;">
-                      <span class="method-name pruned-text">PRUNED</span> — <span class="status unsafe-text">Unsafe & Failed</span>
-                    </div>
-                  </div>
-
-                  <!-- SAFE (right) -->
-                  <div class="video-card safe">
-                    <video autoplay muted loop playsinline>
-                      <source src="./resources/navigation_gluestick.mp4" type="video/mp4">
-                    </video>
-                    <div class="label-below">
-                      <img src="./resources/orange_gluestick.png" class="label-icon" alt="GLUESTICK Icon" style="width: .8em; vertical-align: -0.2em;">
-                      <span class="method-name gluestick-text">GLUESTICK</span> — <span class="status safe-text">Safe & Successful</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Navigation instruction -->
-                <div class="task-instruction-gradient">
-                  <strong>Task Instruction:</strong> "Enter the dining room and walk to the other end"
-                </div>
-              </div>
-            </div>
-
-
-            <!-- ====== CSS ====== -->
-            <style>
-            .video-gallery {
-              display: flex;
-              flex-direction: column;
-              gap: .5em;
-              margin-top: 1.5rem;
-            }
-
-            .task-title {
-              font-size: 1.4rem;
-              font-weight: 600;
-              text-align: center;
-              margin-bottom: 1rem;
-              color: #222;
-            }
-
-            .video-pair {
-              display: flex;
-              justify-content: center;
-              align-items: flex-start;
-              gap: 2rem;
-              flex-wrap: wrap;
-            }
-
-            .video-card {
-              position: relative;
-              text-align: center;
-              border-radius: 12px;
-              overflow: hidden;
-              transition: transform 0.3s ease, box-shadow 0.4s ease;
-              max-width: 600px;
-              flex: 1 1 45%;
-            }
-
-            .video-card video {
-              width: 100%;
-              height: auto;
-              display: block;
-              border-radius: 12px;
-              transition: transform 0.3s ease;
-            }
-
-            .video-card:hover video {
-              transform: scale(1.02);
-            }
-
-            /* Glow around the video boxes */
-            .video-card.safe {
-              box-shadow: 0 0 1.5em rgba(220, 90, 47, 0.6); /* GLUESTICK orange glow */
-            }
-
-            .video-card.unsafe {
-              box-shadow: 0 0 1.5em rgba(127, 99, 177, 0.6); /* PRUNED purple glow */
-            }
-
-            .video-card.safe:hover {
-              box-shadow: 0 0 3em rgba(220, 90, 47, 0.95); /* stronger orange on hover */
-            }
-
-            .video-card.unsafe:hover {
-              box-shadow: 0 0 3em rgba(127, 99, 177, 0.95); /* stronger purple on hover */
-            }
-
-
-            .label-below {
-              margin-top: 0.6rem;
-              font-weight: 600;
-              font-size: 1rem;
-              color: #444;
-            }
-
-            .safe-text {
-              color: #DC5A2F;
-            }
-
-            .unsafe-text {
-              color: #7F63B1;
-            }
-
-            .emoji {
-              font-size: 1.2rem;
-              margin-right: 0.3rem;
-            }
-
-            .task-instruction-gradient {
-              margin: 1.6rem auto;               /* equal spacing above and below */
-              padding: 0.35rem 1rem;             /* thinner height */
-              text-align: center;
-              font-size: 0.85rem;                /* slightly smaller text */
-              font-weight: 500;
-              color: #000;
-              border-radius: 6px;
-              width: fit-content;
-              max-width: 85%;
-              background: linear-gradient(
-                90deg,
-                rgba(127, 99, 177, 0.55) 0%,     /* purple (left, PRUNED) */
-                rgba(220, 90, 47, 0.55) 100%     /* orange (right, GLUESTICK) */
-              );
-              box-shadow:
-                0 0 .5em rgba(127, 99, 177, 0.25),
-                0 0 .5em rgba(220, 90, 47, 0.25); /* gentle glow matching gradient */
-              font-family: 'Noto Sans', sans-serif;
-              line-height: 1.3;
-              letter-spacing: 0.25px;
-              backdrop-filter: blur(4px);
-            }
-
-            .task-instruction-gradient strong {
-              font-weight: 700;
-              color: #000;
-            }
-
-            .task-instruction-gradient:hover {
-              box-shadow:
-                0 0 1em rgba(127, 99, 177, 0.35),
-                0 0 1em rgba(220, 90, 47, 0.35);
-              transform: scale(1.01);
-              transition: all 0.25s ease;
-            }
-
-            /* Flip the header gradient too (to match left→right orientation) */
-            .hero {
-              background: linear-gradient(
-                90deg,
-                rgba(127, 99, 177, 0.55) 0%,     /* purple (left) */
-                rgba(220, 90, 47, 0.55) 100%     /* orange (right) */
-              );
-              color: #fff;
-              padding: 2em 0 0 0;
-              margin-bottom: 3em;
-              width: 100%;
-              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            }
-
-
-            .hero .hero-body {
-              padding-top: 1em !important;
-              padding-bottom: .8em !important; /* makes the header thinner */
-            }
-
-            .hero + section {
-              margin-top: 1.5em; /* adds breathing room before next section */
-            }
-
-            /* Responsive adjustments */
-            @media (max-width: 900px) {
-              .video-pair {
-                flex-direction: column;
-                align-items: center;
-              }
-
-              .video-card {
-                max-width: 90%;
-              }
-
-              .label-below {
-                font-size: 0.95rem;
-              }
-            }
-            </style>
-
-            <!-- Play video in a loop -->
-            <script>
-            document.querySelectorAll('.video-card video').forEach(video => {
-              video.autoplay = true;
-              video.loop = true;
-              video.muted = true;
-              video.play();
-            });
-            </script>
-
-
-
-            <script>
-            // Start navigation videos at custom times
-            const navGlue = document.querySelector('video source[src*="navigation_gluestick.mp4"]')?.parentElement;
-            const navPruned = document.querySelector('video source[src*="navigation_pruned.mp4"]')?.parentElement;
-
-            if (navGlue) {
-              navGlue.currentTime = 17;  // start at 17 seconds
-              navGlue.play();
-
-              // Loop between 17s and 43s
-              navGlue.addEventListener('timeupdate', () => {
-                if (navGlue.currentTime >= 43) {
-                  navGlue.currentTime = 17;  // jump back to start time
-                  navGlue.play();
-                }
-                });
-            }
-            
-
-            if (navPruned) {
-              navPruned.currentTime = 6;  // start at 6 seconds
-              navPruned.play();
-            }
-            </script>
-
-            <br>
-
-            <!-- ===================== -->
-            <!-- ====== Results ====== -->
-            <!-- ===================== -->
-            <h2 class="title is-4" style="font-weight: 700;">Results</h2>
-            <div class="content has-text-justified" style="align-self: flex-start;">
-              <p>
-                Our method recovers task success rates and reduces safety violations across VLA architectures (OpenVLA, WorldVLA, and NaVILA) and domains (Manipulation and Navigation), while maintaining pruning efficiency.             
-              </p>
-            </div>
-
-            <!-- Side-by-side tables -->
-            <div class="results-tables">
-                <!-- ===== Manipulation Table ===== -->
-                <div class="table-card">
-                  <div class="table-wrapper">
-                    <table class="styled-table">
-                      <thead>
-                        <tr>
-                          <th>Method</th>
-                          <th colspan="4">LIBERO (↑)</th>
-                          <th>Mean (↑)</th>
-                        </tr>
-                        <tr>
-                          <th></th>
-                          <th>Spatial</th>
-                          <th>Object</th>
-                          <th>Goal</th>
-                          <th>Long</th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr><td>Full Dense</td><td>+0.0</td><td>+0.0</td><td>+0.0</td><td>+0.0</td><td>+0.0</td></tr>
-                        <tr><td>Full Sparse</td><td>−85.2</td><td>−72.4</td><td>−76.2</td><td>−55.8</td><td>−72.4</td></tr>
-                        <tr><td>Sparse Lang. BB</td><td>−69.5</td><td>−57.3</td><td>−58.5</td><td>−49.3</td><td>−58.7</td></tr>
-                        <tr><td>% Sparse Lang. BB</td><td>−71.6</td><td>−57.9</td><td>−57.8</td><td>−49.8</td><td>−59.3</td></tr>
-                        <tr class="highlight">
-                          <td><em>GLUESTICK-500</em></td>
-                          <td><strong>−32.8</strong></td>
-                          <td><strong>−34.9</strong></td>
-                          <td><strong>−32.9</strong></td>
-                          <td><strong>−42.2</strong></td>
-                          <td><strong>−35.7</strong></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <p class="caption">
-                    <b>Change in success rate (%) relative to Full Dense.</b>
-                    Higher is better. Results averaged across OpenVLA and WorldVLA.
-                  </p>
-                </div>
-
-                <div class="content has-text-justified" style="align-self: flex-start;">
-                <p>
-                  Across all four LIBERO task suites, <b>GLUESTICK</b> recovers much of the lost success rate, demonstrating its effectiveness in restoring dexterous manipulation behavior.
-                </p>
-                </div>
-
-                <!-- ===== Navigation Table ===== -->
-                <div class="table-card">
-                  <div class="table-wrapper">
-                    <table class="styled-table">
-                      <thead>
-                        <tr>
-                          <th>Method</th>
-                          <th>ΔSucc. (↑)</th>
-                          <th>ΔUnsafe (↓)</th>
-                          <th>PL (↓)</th>
-                          <th>DG (↓)</th>
-                          <th>ΔRAM (↓)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr><td>Full Dense</td><td>+0.0</td><td>+0.0</td><td>11.7</td><td>5.9</td><td>+0.00</td></tr>
-                        <tr><td>Full Sparse</td><td>−43.0</td><td>+23.0</td><td>17.6</td><td>9.5</td><td>−5.74</td></tr>
-                        <tr><td>Sparse Lang. BB</td><td>−20.0</td><td>+2.0</td><td>14.8</td><td>8.5</td><td>−5.68</td></tr>
-                        <tr><td>% Sparse Lang. BB</td><td>−18.0</td><td>+12.0</td><td>14.9</td><td>8.4</td><td>−4.59</td></tr>
-                        <tr><td>GLUESTICK-200</td><td>−2.0</td><td>−1.0</td><td>12.5</td><td>6.5</td><td>−5.36</td></tr>
-                        <tr class="highlight">
-                          <td><em>GLUESTICK-500</em></td>
-                          <td><strong>+1.0</strong></td>
-                          <td><strong>−4.0</strong></td>
-                          <td><strong>11.9</strong></td>
-                          <td><strong>5.9</strong></td>
-                          <td><strong>−4.60</strong></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <p class="caption">
-                    <b>Navigation results.</b> Δ columns are relative to Full Dense; higher ΔSucc. and lower ΔUnsafe are better.
-                    PL = Path Length, DG = Final Distance to Goal, RAM = Peak Usage. Evaluated on the NaVILA model. 
-                  </p>
-                </div>
-            </div>
-
-
-              <div class="content has-text-justified" style="align-self: flex-start;">
-              <p>
-                On the VLN-CE-Isaac benchmark, GLUESTICK restores all of the lost success rate, demonstrating its effectiveness in recovering navigation behavior.
-                This recovery is not limited to task completion, GLUESTICK also restores path length and final distance-to-goal, matching the behavior of the original model.
-                Importantly, it also restores safety to the level of the original model while maintaining competitive memory efficiency.
-                              
-              </p>
-            </div>
-            <!-- ====== Table Styling ====== -->
-            
-            <style>
-              .results-tables {
-                display: block;              /* stack vertically instead of side-by-side */
-                margin-top: 1.5rem;
-              }
-
-              .table-card {
-                background: #fff;
-                padding: 1.25rem 1.5rem;
-                border-radius: 10px;
-                box-shadow: 0 0 1em rgba(0,0,0,0.08);
-                text-align: center;
-                border: 1px solid #000;
-                margin-bottom: 2rem;         /* space between stacked tables */
-              }
-
-              .table-wrapper {
-                width: 100%;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
-              }
-
-              .styled-table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 0.92rem;
-                min-width: 500px; /* ensures nice layout on scroll */
-                font-family: 'Noto Sans', sans-serif;
-
-              }
-
-              .styled-table th {
-                background: #f7f7f7;
-                color: #111;
-                padding: 0.6rem;
-                text-align: center;
-                font-weight: 700;
-                border-bottom: 1px solid #ccc;
-              }
-
-              .styled-table td {
-                padding: 0.5rem;
-                text-align: center;
-                border-bottom: 1px solid #e0e0e0;
-              }
-
-              .styled-table tr.highlight {
-                background: #fafafa;
-                font-weight: 600;
-              }
-
-              .caption {
-                font-size: 0.82rem;
-                color: #333;
-                margin-top: 0.6rem;
-                text-align: justify;
-                line-height: 1.3;
-              }
-              </style>
-
-
-
-            <br>
-
-        
-
-        </div>
+    <ul class="how-foot how-perks">
+      <li><svg class="ok" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" stroke="#F35937" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Needs only the dense model and its pruned counterpart</span></li>
+      <li><svg class="ok" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" stroke="#F35937" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>One-time offline cost</span></li>
+      <li><svg class="ok" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" stroke="#F35937" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>No additional training</span></li>
+    </ul>
+  </div></div></div>
+  <img class="gs-floater" id="gs-floater2" src="./resources/orange_gluestick.png" alt="" aria-hidden="true">
+
+  <div class="real-page" id="real-page">
+    <div class="wrap">
+      <div class="section-head scene-head real-head">
+        <h2>On a real robot.</h2>
+        <p class="real-meta">Unitree G1 humanoid running GR00T N1.7, pruned with Magnitude at 50% 2:4 sparsity.</p>
       </div>
-    </div>
-  </section>
-
-  <section class="section" id="BibTeX">
-    <div class="container is-max-desktop content">
-      <h2 class="title is-4" style="font-weight: 700;">BibTeX</h2>
-      <div class="bibtex-container">
-        <button class="copy-button" onclick="copyBibTeX()" title="Copy BibTeX">
-          <i class="fas fa-copy"></i>
-        </button>
-        <div class="copy-feedback" id="copyFeedback">Copied!</div>
-        <pre><code id="bibtexCode">@article{gluestick2024,
- title={Don't Run with Scissors: Pruning Breaks VLA Models but They Can Be Recovered},
- author={Authors will be added later},
- journal={Submitted},
- year={2025}
-}</code></pre>
+      <div class="real-bar">
+        <div class="spot-task real-task"><span class="k">Instruction</span><span class="q">“Pick up the apple and place it in the bin.”</span></div>
+        <label class="real-switch"><input type="checkbox" id="cage-toggle"><span class="track" aria-hidden="true"><i></i></span><span class="lbl">Show containment region</span></label>
       </div>
-    </div>
-  </section>
-
-  <script>
-    async function copyBibTeX() {
-      const bibtexText = document.getElementById('bibtexCode').textContent;
-      const copyButton = document.querySelector('.copy-button');
-      const feedback = document.getElementById('copyFeedback');
-
-      try {
-        await navigator.clipboard.writeText(bibtexText);
-
-        // Show success feedback
-        copyButton.classList.add('copied');
-        copyButton.innerHTML = '<i class="fas fa-check"></i>';
-        feedback.classList.add('show');
-
-        // Reset after 2 seconds
-        setTimeout(() => {
-          copyButton.classList.remove('copied');
-          copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-          feedback.classList.remove('show');
-        }, 2000);
-
-      } catch (err) {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = bibtexText;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-
-        // Show success feedback
-        copyButton.classList.add('copied');
-        copyButton.innerHTML = '<i class="fas fa-check"></i>';
-        feedback.classList.add('show');
-
-        setTimeout(() => {
-          copyButton.classList.remove('copied');
-          copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-          feedback.classList.remove('show');
-        }, 2000);
-      }
-    }
-  </script>
-
-  <!-- Acknowledgements section removed for double-blind submission -->
-
-  <footer class="footer">
-    <div class="container">
-      <div class="columns is-centered">
-        <div class="column is-8">
-          <div class="content">
-            <p>
-              This webpage template is adapted from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>,
-              under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0 License</a>.
-            </p>
+      <div class="real-grid">
+        <figure class="real-card pruned" data-real="pruned">
+          <div class="demo-colhead pruned"><i class="dot" aria-hidden="true"></i><span>Pruned</span></div>
+          <div class="vmedia real-media">
+            <video disablepictureinpicture disableremoteplayback muted playsinline preload="auto"><source src="./resources/g1_pruned.mp4" type="video/mp4"></video>
+            <svg class="real-ov cage" data-ev="breach" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true">
+              <path class="cage-fill" d="M0.1080 0.7160 L0.8360 0.7120 L0.8360 0.4920 L0.1080 0.4960 Z"/>
+              <path class="cage-grid floor" d="M0.1080 0.7160 L0.0000 0.8500 M0.1808 0.7156 L0.1000 0.8625 M0.2536 0.7152 L0.2000 0.8750 M0.3264 0.7148 L0.3000 0.8875 M0.3992 0.7144 L0.4000 0.9000 M0.4720 0.7140 L0.5000 0.9125 M0.5448 0.7136 L0.6000 0.9250 M0.6176 0.7132 L0.7000 0.9375 M0.6904 0.7128 L0.8000 0.9500 M0.7632 0.7124 L0.9000 0.9625 M0.8360 0.7120 L1.0000 0.9750 M0.1080 0.7160 L0.8360 0.7120 M0.0900 0.7383 L0.8633 0.7558 M0.0720 0.7607 L0.8907 0.7997 M0.0540 0.7830 L0.9180 0.8435 M0.0360 0.8053 L0.9453 0.8873 M0.0180 0.8277 L0.9727 0.9312 M0.0000 0.8500 L1.0000 0.9750"/>
+              <path class="cage-grid wall" d="M0.1080 0.7160 L0.1080 0.4960 M0.1808 0.7156 L0.1808 0.4956 M0.2536 0.7152 L0.2536 0.4952 M0.3264 0.7148 L0.3264 0.4948 M0.3992 0.7144 L0.3992 0.4944 M0.4720 0.7140 L0.4720 0.4940 M0.5448 0.7136 L0.5448 0.4936 M0.6176 0.7132 L0.6176 0.4932 M0.6904 0.7128 L0.6904 0.4928 M0.7632 0.7124 L0.7632 0.4924 M0.8360 0.7120 L0.8360 0.4920 M0.1080 0.7160 L0.8360 0.7120 M0.1080 0.6610 L0.8360 0.6570 M0.1080 0.6060 L0.8360 0.6020 M0.1080 0.5510 L0.8360 0.5470 M0.1080 0.4960 L0.8360 0.4920 M0.1080 0.7160 L0.1080 0.4960 M0.0900 0.7383 L0.0900 0.4950 M0.0720 0.7607 L0.0720 0.4940 M0.0540 0.7830 L0.0540 0.4930 M0.0360 0.8053 L0.0360 0.4920 M0.0180 0.8277 L0.0180 0.4910 M0.0000 0.8500 L0.0000 0.4900 M0.1080 0.7160 L0.0000 0.8500 M0.1080 0.6610 L0.0000 0.7600 M0.1080 0.6060 L0.0000 0.6700 M0.1080 0.5510 L0.0000 0.5800 M0.1080 0.4960 L0.0000 0.4900 M0.8360 0.7120 L0.8360 0.4920 M0.8633 0.7558 L0.8633 0.5125 M0.8907 0.7997 L0.8907 0.5330 M0.9180 0.8435 L0.9180 0.5535 M0.9453 0.8873 L0.9453 0.5740 M0.9727 0.9312 L0.9727 0.5945 M1.0000 0.9750 L1.0000 0.6150 M0.8360 0.7120 L1.0000 0.9750 M0.8360 0.6570 L1.0000 0.8850 M0.8360 0.6020 L1.0000 0.7950 M0.8360 0.5470 L1.0000 0.7050 M0.8360 0.4920 L1.0000 0.6150"/>
+              <path class="cage-rim" d="M0.0000 0.4900 L0.1080 0.4960 M0.1080 0.4960 L0.8360 0.4920 M0.8360 0.4920 L1.0000 0.6150"/>
+            </svg>
+            <svg class="real-ov rings" viewBox="0 0 160 90" aria-hidden="true">
+              <ellipse class="ring" data-ev="collision" cx="86" cy="51.5" rx="9.5" ry="9"/>
+              <ellipse class="ring breach" data-ev="breach" cx="99.5" cy="57" rx="8.5" ry="9"/>
+            </svg>
+            <div class="real-toast" data-ev="collision"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20L12 3z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 10v5M12 18v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Self-collision</span></div>
+            <div class="real-toast breach" data-ev="breach"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20L12 3z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 10v5M12 18v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Containment breach</span></div>
+            <div class="real-prog"><b></b><i class="tick" style="left:16.67%"></i><i class="tick breach" style="left:91.67%"></i></div>
           </div>
-        </div>
+          <div class="real-log">
+            <p class="real-log-h">Safety monitor</p>
+            <div class="real-checks">
+              <div class="chk" data-ev="collision"><span class="chk-name">Self-collision</span><span class="chk-state"><i class="dot"></i><span class="ok-t">Clear</span><span class="bad-t">Violated at 0:08</span></span></div>
+              <div class="chk" data-ev="breach"><span class="chk-name">End-effector containment</span><span class="chk-state"><i class="dot"></i><span class="ok-t">Clear</span><span class="bad-t">Violated at 0:44</span></span></div>
+            </div>
+            <p class="real-outcome fail"><span class="lbl">Episode</span><span class="pending"><i class="spin"></i>In progress</span><span class="done">Failed</span></p>
+          </div>
+        </figure>
+        <figure class="real-card glue" data-real="glue">
+          <div class="demo-colhead glue"><i class="dot" aria-hidden="true"></i><span>With GLUESTICK</span></div>
+          <div class="vmedia real-media">
+            <video disablepictureinpicture disableremoteplayback muted playsinline preload="auto"><source src="./resources/g1_gluestick.mp4" type="video/mp4"></video>
+            <svg class="real-ov cage" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true">
+              <path class="cage-fill" d="M0.1080 0.7160 L0.8360 0.7120 L0.8360 0.4920 L0.1080 0.4960 Z"/>
+              <path class="cage-grid floor" d="M0.1080 0.7160 L0.0000 0.8500 M0.1808 0.7156 L0.1000 0.8625 M0.2536 0.7152 L0.2000 0.8750 M0.3264 0.7148 L0.3000 0.8875 M0.3992 0.7144 L0.4000 0.9000 M0.4720 0.7140 L0.5000 0.9125 M0.5448 0.7136 L0.6000 0.9250 M0.6176 0.7132 L0.7000 0.9375 M0.6904 0.7128 L0.8000 0.9500 M0.7632 0.7124 L0.9000 0.9625 M0.8360 0.7120 L1.0000 0.9750 M0.1080 0.7160 L0.8360 0.7120 M0.0900 0.7383 L0.8633 0.7558 M0.0720 0.7607 L0.8907 0.7997 M0.0540 0.7830 L0.9180 0.8435 M0.0360 0.8053 L0.9453 0.8873 M0.0180 0.8277 L0.9727 0.9312 M0.0000 0.8500 L1.0000 0.9750"/>
+              <path class="cage-grid wall" d="M0.1080 0.7160 L0.1080 0.4960 M0.1808 0.7156 L0.1808 0.4956 M0.2536 0.7152 L0.2536 0.4952 M0.3264 0.7148 L0.3264 0.4948 M0.3992 0.7144 L0.3992 0.4944 M0.4720 0.7140 L0.4720 0.4940 M0.5448 0.7136 L0.5448 0.4936 M0.6176 0.7132 L0.6176 0.4932 M0.6904 0.7128 L0.6904 0.4928 M0.7632 0.7124 L0.7632 0.4924 M0.8360 0.7120 L0.8360 0.4920 M0.1080 0.7160 L0.8360 0.7120 M0.1080 0.6610 L0.8360 0.6570 M0.1080 0.6060 L0.8360 0.6020 M0.1080 0.5510 L0.8360 0.5470 M0.1080 0.4960 L0.8360 0.4920 M0.1080 0.7160 L0.1080 0.4960 M0.0900 0.7383 L0.0900 0.4950 M0.0720 0.7607 L0.0720 0.4940 M0.0540 0.7830 L0.0540 0.4930 M0.0360 0.8053 L0.0360 0.4920 M0.0180 0.8277 L0.0180 0.4910 M0.0000 0.8500 L0.0000 0.4900 M0.1080 0.7160 L0.0000 0.8500 M0.1080 0.6610 L0.0000 0.7600 M0.1080 0.6060 L0.0000 0.6700 M0.1080 0.5510 L0.0000 0.5800 M0.1080 0.4960 L0.0000 0.4900 M0.8360 0.7120 L0.8360 0.4920 M0.8633 0.7558 L0.8633 0.5125 M0.8907 0.7997 L0.8907 0.5330 M0.9180 0.8435 L0.9180 0.5535 M0.9453 0.8873 L0.9453 0.5740 M0.9727 0.9312 L0.9727 0.5945 M1.0000 0.9750 L1.0000 0.6150 M0.8360 0.7120 L1.0000 0.9750 M0.8360 0.6570 L1.0000 0.8850 M0.8360 0.6020 L1.0000 0.7950 M0.8360 0.5470 L1.0000 0.7050 M0.8360 0.4920 L1.0000 0.6150"/>
+              <path class="cage-rim" d="M0.0000 0.4900 L0.1080 0.4960 M0.1080 0.4960 L0.8360 0.4920 M0.8360 0.4920 L1.0000 0.6150"/>
+            </svg>
+            <div class="real-prog"><b></b></div>
+          </div>
+          <div class="real-log">
+            <p class="real-log-h">Safety monitor</p>
+            <div class="real-checks">
+              <div class="chk"><span class="chk-name">Self-collision</span><span class="chk-state"><i class="dot"></i><span class="ok-t">Clear</span><span class="bad-t">Violated at 0:08</span></span></div>
+              <div class="chk"><span class="chk-name">End-effector containment</span><span class="chk-state"><i class="dot"></i><span class="ok-t">Clear</span><span class="bad-t">Violated at 0:44</span></span></div>
+            </div>
+            <p class="real-outcome ok"><span class="lbl">Episode</span><span class="pending"><i class="spin"></i>In progress</span><span class="done">Succeeded</span></p>
+          </div>
+        </figure>
       </div>
     </div>
-  </footer>
-  <script src="static/js/comparison.js"></script>
+  </div>
+
+  <div class="scene-scroll tables-scroll" id="tables-scroll"><div class="scene-sticky tables-sticky"><div class="wrap">
+    <div class="section-head scene-head tables-head">
+      <h2>It holds up across sparsities, pruning methods and models.</h2>
+    </div>
+    <div class="tables-grid" id="tables-grid">
+      <article class="tcard">
+        <p class="tcard-eyebrow">Across sparsities</p>
+        <table class="mini">
+          <thead><tr><th>Method</th><th>0%</th><th>30%</th><th>50%</th><th>70%</th></tr></thead>
+          <tbody>
+            <tr><td>Wanda</td><td>85.2</td><td>80.8</td><td>31.8</td><td>1.2</td></tr>
+            <tr class="ours"><td>+ GLUESTICK</td><td class="na" title="Not applicable">n/a</td><td>85.8</td><td>60.2</td><td>24.6</td></tr>
+          </tbody>
+        </table>
+        <p class="tcard-cap"><b>Table 8.</b> GLUESTICK-500’s recovery of VLA success rates across sparsities. Evaluated on LIBERO Spatial. Results for the pruned language backbone of OpenVLA using Wanda.</p>
+      </article>
+      <article class="tcard">
+        <p class="tcard-eyebrow">On VLMs</p>
+        <table class="mini">
+          <thead><tr><th>Method</th><th>0%</th><th>30%</th><th>50%</th><th>70%</th></tr></thead>
+          <tbody>
+            <tr><td>Wanda</td><td>93.88</td><td>93.38</td><td>88.16</td><td>21.30</td></tr>
+            <tr class="ours"><td>+ GLUESTICK</td><td class="na" title="Not applicable">n/a</td><td class="na" title="Not applicable">n/a</td><td>92.95</td><td>90.89</td></tr>
+          </tbody>
+        </table>
+        <p class="tcard-cap"><b>Table 9.</b> GLUESTICK-500’s ability to recover pruned VLM performance. Evaluated on 1000 DocVQA examples using Wanda-pruned Qwen2-VL-7B-Instruct VLM. Values show ANLS.</p>
+      </article>
+      <article class="tcard">
+        <p class="tcard-eyebrow">Across pruning algorithms and patterns</p>
+        <table class="mini">
+          <thead><tr><th>Method</th><th>2:4</th><th>4:8</th></tr></thead>
+          <tbody>
+            <tr><td>Magnitude</td><td>11.0</td><td>25.4</td></tr>
+            <tr class="ours"><td>+ GLUESTICK</td><td>48.8</td><td>61.8</td></tr>
+          </tbody>
+        </table>
+        <p class="tcard-cap"><b>Table 10.</b> GLUESTICK is pruning-algorithm and sparsity-pattern agnostic. Magnitude-pruned OpenVLA language backbone evaluated on LIBERO Spatial (values show success %).</p>
+      </article>
+    </div>
+  </div></div></div>
+</section>
+
+<section class="scene-section end-page" id="end-page">
+  <div class="wrap end-wrap">
+    <img class="end-icon" src="./resources/orange_gluestick.png" alt="" aria-hidden="true">
+    <h2>Read the paper.</h2>
+    <p class="end-sub">Full results, ablations, and real-world experiments.</p>
+    <a class="btn primary end-btn" href="https://arxiv.org/abs/2510.08464" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      Read on arXiv
+    </a>
+    <p class="end-id">arXiv:2510.08464 · CoRL 2026</p>
+  </div>
+</section>
+
+</main>
 
 
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged figure">
+  <img src="" alt="">
+  <div class="lb-cap"></div>
+</div>
+
+<script src="./static/js/three.min.js?v=2"></script>
+<script src="./static/js/method3d.js?v=2"></script>
+<script src="./static/js/charts.js?v=2"></script>
+<script src="./static/js/spotlight-paths.js?v=2"></script>
+<script src="./static/js/spotlight.js?v=2"></script>
+<script src="./static/js/main.js?v=2"></script>
 </body>
-
 </html>
