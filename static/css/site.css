@@ -1061,3 +1061,14 @@ table.mini td.na, table.mini tr.ours td.na { color: var(--muted); font-weight: 4
   table.mini td.na, table.mini tr.ours td.na { font-size: 11px; }
   .tcard { padding: 12px 10px 10px; }
 }
+
+/* equations on the scroll pages never scroll: a sub- or superscript a pixel past its box would otherwise show a scrollbar */
+#overview .eq, #overview mjx-container { overflow: visible !important; max-width: none; }
+#overview .how-stagebox .stage-eq { overflow: hidden; }
+/* the SVD equation splits onto two lines on narrow screens instead of being clipped */
+.how-stagebox .stage-eq .eq-br { display: none; }
+@media (max-width: 600px) {
+  .how-stagebox .stage-eq .eq-br { display: inline; }
+  .how-stagebox .stage-eq .eq-sep { display: none; }
+  .how-stagebox .stage-eq { min-height: 64px; }
+}
