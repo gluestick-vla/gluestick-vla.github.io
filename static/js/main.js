@@ -489,18 +489,18 @@
   // so each wheel step reads as motion rather than a jump. Linear in scroll
   // otherwise: constant scrolling means constant animation speed.
   var scrubber = function (read, apply) {
-    var cur = null, target = 0, raf = null, last = 0;
+    var cur = null, target = 0, raf = null, last = 0, applied = null;
     var tick = function (now) {
       raf = null;
       var dt = last ? Math.min(0.1, (now - last) / 1000) : 1 / 60; last = now;
       cur += (target - cur) * (1 - Math.exp(-dt / 0.15));
-      if (Math.abs(target - cur) < 0.0005) { cur = target; apply(cur); return; }
-      apply(cur); raf = requestAnimationFrame(tick);
+      if (Math.abs(target - cur) < 0.0005) { cur = target; if (applied !== cur) { applied = cur; apply(cur); } return; }
+      applied = cur; apply(cur); raf = requestAnimationFrame(tick);
     };
     var sync = function (immediate) {
       target = read();
-      if (cur === null || immediate || reduced) { if (raf) { cancelAnimationFrame(raf); raf = null; } cur = target; apply(cur); return; }
-      if (!raf) { last = 0; raf = requestAnimationFrame(tick); }
+      if (cur === null || immediate || reduced) { if (raf) { cancelAnimationFrame(raf); raf = null; } cur = target; applied = cur; apply(cur); return; }
+      if (!raf && !(target === cur && applied === cur)) { last = 0; raf = requestAnimationFrame(tick); }   // nothing to do when the page is at rest
     };
     window.addEventListener('scroll', function () { sync(false); }, { passive: true });
     window.addEventListener('resize', function () { sync(true); });
@@ -787,22 +787,27 @@
     if (cageToggle) { cageToggle.addEventListener('change', function () { realPage.classList.toggle('show-cage', cageToggle.checked); }); }
     var EVENTS = { collision: [8.0, 10.5], breach: [44.0, Infinity] };   // [start, end of on-video marker] in seconds
     var cards = $$('.real-card', realPage).map(function (card) {
-      return { card: card, v: $('video', card), bar: $('.real-prog b', card), outcome: $('.real-outcome', card), done: false };
+      var evs = {}; Object.keys(EVENTS).forEach(function (k) { evs[k] = $$('[data-ev="' + k + '"]', card); });
+      return { card: card, v: $('video', card), bar: $('.real-prog b', card), outcome: $('.real-outcome', card), done: false, evs: evs, key: '' };
     });
     var realRaf = null, realVisible = false, restartTimer = null;
     var paint = function () {
       cards.forEach(function (c) {
         var v = c.v; if (!v) { return; }
         var t = v.currentTime || 0, d = v.duration || 0;
-        if (c.bar && d) { c.bar.style.width = (Math.min(1, t / d) * 100).toFixed(2) + '%'; }
+        if (c.bar && d) { var wd = (Math.min(1, t / d) * 100).toFixed(2) + '%'; if (c.bar.style.width !== wd) { c.bar.style.width = wd; } }
+        if (d && t >= d - 0.12) { c.done = true; }
+        var key = c.done ? 'd' : '';
+        Object.keys(EVENTS).forEach(function (k) { var w = EVENTS[k]; key += (t >= w[0] ? '1' : '0') + (t >= w[0] && t < w[1] ? '1' : '0'); });
+        if (key === c.key) { return; }   // nothing changed since the last frame
+        c.key = key;
         Object.keys(EVENTS).forEach(function (k) {
           var w = EVENTS[k], on = t >= w[0] && t < w[1];
-          $$('[data-ev="' + k + '"]', c.card).forEach(function (el) {
+          c.evs[k].forEach(function (el) {
             if (el.classList.contains('chk')) { el.classList.toggle('tripped', t >= w[0]); }
             else { el.classList.toggle('on', on); }
           });
         });
-        if (d && t >= d - 0.12) { c.done = true; }
         if (c.outcome) { c.outcome.classList.toggle('shown', c.done); }
       });
     };
@@ -825,6 +830,12 @@
       });
     });
     if ('IntersectionObserver' in window) {
+      var nearIO = new IntersectionObserver(function (es) {
+        if (!es[0].isIntersecting) { return; }
+        cards.forEach(function (c) { if (c.v) { c.v.preload = 'auto'; } });
+        nearIO.disconnect();
+      }, { rootMargin: '150% 0px' });
+      nearIO.observe(realPage);
       new IntersectionObserver(function (es) {
         es.forEach(function (e) {
           realVisible = e.isIntersecting;

@@ -297,8 +297,9 @@
     if (global.IntersectionObserver) {
       this.io = new IntersectionObserver(function (entries) {
         self.visible = entries[0].isIntersecting;
+        if (self.visible && self._stale) { self._stale = false; self._render(); }   // seeked while off-screen: draw it now
         if (self.visible && self.playing && !self.raf) { self._loop(); }
-      }, { threshold: 0.02 });
+      }, { threshold: 0.02, rootMargin: '15% 0px' });
       this.io.observe(this.container);
     }
     this._onVis = function () { if (!document.hidden && self.playing && !self.raf) { self._loop(); } };
@@ -797,6 +798,7 @@
   };
   GluestickScene.prototype._render = function () {
     if (!this.renderer) { return; }
+    if (!this.visible) { this._stale = true; return; }   // off-screen: nothing to draw until it is back in view
     this.renderer.render(this.scene, this.camera);
     if (!this.opts.labels) { return; }
     var w = this.container.clientWidth, h = this.container.clientHeight, v = this._v || (this._v = new THREE.Vector3());
